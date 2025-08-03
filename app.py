@@ -189,6 +189,10 @@ if 'planetary_degrees' not in st.session_state:
         "Venus": 125.0, "Mars": 110.0, "Jupiter": 40.0, 
         "Saturn": 335.0, "Rahu": 350.0, "Ketu": 170.0
     }
+if 'last_date' not in st.session_state:
+    st.session_state.last_date = st.session_state.current_date
+if 'last_symbol' not in st.session_state:
+    st.session_state.last_symbol = st.session_state.current_symbol
 
 # Function to determine market type
 def get_market_type(symbol):
@@ -893,12 +897,6 @@ Based on the planetary positions and transit timeline for today, the following s
 """
 
 # Check if date or symbol has changed
-if 'last_date' not in st.session_state:
-    st.session_state.last_date = date
-if 'last_symbol' not in st.session_state:
-    st.session_state.last_symbol = symbol
-
-# If date or symbol changed, update planetary positions and regenerate data
 if date != st.session_state.last_date or symbol != st.session_state.last_symbol:
     # Calculate new planetary positions based on date
     st.session_state.planetary_degrees = calculate_planetary_positions(date)
