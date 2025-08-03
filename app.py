@@ -536,47 +536,6 @@ def create_zodiac_wheel_with_aspects(planetary_data, aspects):
     img_str = base64.b64encode(buffered.getvalue()).decode()
     return f"data:image/png;base64,{img_str}"
 
-# Header
-st.markdown('<div class="main-header">INTRADAY PLANETARY TRANSIT TRADING DASHBOARD</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">Astrowise & Gann Wise Trading System</div>', unsafe_allow_html=True)
-
-# Current time display
-current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-st.markdown(f'<div class="current-time">Current Time: {current_time}</div>', unsafe_allow_html=True)
-
-# Refresh button
-if st.button("Refresh Planetary Positions", key="refresh_btn"):
-    update_planetary_degrees()
-    # Regenerate all data with updated degrees
-    st.session_state.planetary_data = generate_planetary_data(st.session_state.planetary_degrees)
-    st.session_state.timeline_data = generate_timeline_data(st.session_state.current_symbol)
-    st.session_state.trade_strategy = generate_trade_strategy(st.session_state.current_symbol, st.session_state.current_date)
-    st.rerun()
-
-# Market sentiment display
-if st.session_state.planetary_data:
-    sentiment, sentiment_class = calculate_market_sentiment(st.session_state.planetary_data)
-    st.markdown(f'<div class="sentiment-box {sentiment_class}"><h2>{sentiment}</h2></div>', unsafe_allow_html=True)
-
-# Sidebar for inputs
-st.sidebar.header("Input Parameters")
-
-# Date input
-date = st.sidebar.date_input("Date", value=st.session_state.current_date)
-
-# Symbol input - Changed to text input for any symbol
-symbol = st.sidebar.text_input("Symbol", value=st.session_state.current_symbol, 
-                              help="Enter any symbol like NIFTY, BANKNIFTY, GOLD, BTC, DOWJONES, etc.")
-
-# City input
-city = st.sidebar.text_input("City", value="Mumbai")
-
-# Time input
-time_input = st.sidebar.time_input("Time", value=datetime.time(9, 15))
-
-# Generate button
-generate_btn = st.sidebar.button("Generate Report")
-
 # Function to generate timeline data based on market type
 def generate_timeline_data(symbol):
     market_type = get_market_type(symbol)
@@ -895,6 +854,47 @@ Based on the planetary positions and transit timeline for today, the following s
 - **Position Sizing**: Limit exposure to 20% of trading capital per trade.
 - **Confirmation**: Always use technical indicators to confirm astrological signals.
 """
+
+# Header
+st.markdown('<div class="main-header">INTRADAY PLANETARY TRANSIT TRADING DASHBOARD</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Astrowise & Gann Wise Trading System</div>', unsafe_allow_html=True)
+
+# Current time display
+current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+st.markdown(f'<div class="current-time">Current Time: {current_time}</div>', unsafe_allow_html=True)
+
+# Refresh button
+if st.button("Refresh Planetary Positions", key="refresh_btn"):
+    update_planetary_degrees()
+    # Regenerate all data with updated degrees
+    st.session_state.planetary_data = generate_planetary_data(st.session_state.planetary_degrees)
+    st.session_state.timeline_data = generate_timeline_data(st.session_state.current_symbol)
+    st.session_state.trade_strategy = generate_trade_strategy(st.session_state.current_symbol, st.session_state.current_date)
+    st.rerun()
+
+# Market sentiment display
+if st.session_state.planetary_data:
+    sentiment, sentiment_class = calculate_market_sentiment(st.session_state.planetary_data)
+    st.markdown(f'<div class="sentiment-box {sentiment_class}"><h2>{sentiment}</h2></div>', unsafe_allow_html=True)
+
+# Sidebar for inputs
+st.sidebar.header("Input Parameters")
+
+# Date input
+date = st.sidebar.date_input("Date", value=st.session_state.current_date)
+
+# Symbol input - Changed to text input for any symbol
+symbol = st.sidebar.text_input("Symbol", value=st.session_state.current_symbol, 
+                              help="Enter any symbol like NIFTY, BANKNIFTY, GOLD, BTC, DOWJONES, etc.")
+
+# City input
+city = st.sidebar.text_input("City", value="Mumbai")
+
+# Time input
+time_input = st.sidebar.time_input("Time", value=datetime.time(9, 15))
+
+# Generate button
+generate_btn = st.sidebar.button("Generate Report")
 
 # Check if date or symbol has changed
 if date != st.session_state.last_date or symbol != st.session_state.last_symbol:
