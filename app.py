@@ -183,7 +183,7 @@ if 'current_date' not in st.session_state:
 if 'last_update' not in st.session_state:
     st.session_state.last_update = time.time()
 if 'planetary_degrees' not in st.session_state:
-    # Initialize planetary degrees
+    # Initialize planetary degrees for the default date (4th August 2025)
     st.session_state.planetary_degrees = {
         "Sun": 117.5, "Moon": 230.0, "Mercury": 130.0, 
         "Venus": 125.0, "Mars": 110.0, "Jupiter": 40.0, 
@@ -204,6 +204,43 @@ def get_market_type(symbol):
     else:
         # Default to International for unknown symbols
         return "International"
+
+# Function to calculate planetary positions based on date
+def calculate_planetary_positions(date):
+    # Reference date (4th August 2025)
+    reference_date = datetime.date(2025, 8, 4)
+    
+    # Calculate days difference
+    days_diff = (date - reference_date).days
+    
+    # Daily movement for each planet (simplified)
+    daily_movements = {
+        "Sun": 0.9856,      # Approximately 1 degree per day
+        "Moon": 13.1764,    # Approximately 13 degrees per day
+        "Mercury": 1.5,     # Varies, but average around 1.5 degrees
+        "Venus": 1.2,       # Approximately 1.2 degrees per day
+        "Mars": 0.5,        # Approximately 0.5 degrees per day
+        "Jupiter": 0.08,    # Approximately 0.08 degrees per day
+        "Saturn": 0.03,     # Approximately 0.03 degrees per day
+        "Rahu": 0.05,       # Approximately 0.05 degrees per day (retrograde)
+        "Ketu": 0.05       # Same as Rahu (retrograde)
+    }
+    
+    # Base positions for reference date
+    base_positions = {
+        "Sun": 117.5, "Moon": 230.0, "Mercury": 130.0, 
+        "Venus": 125.0, "Mars": 110.0, "Jupiter": 40.0, 
+        "Saturn": 335.0, "Rahu": 350.0, "Ketu": 170.0
+    }
+    
+    # Calculate new positions
+    new_positions = {}
+    for planet, base_pos in base_positions.items():
+        movement = daily_movements[planet] * days_diff
+        new_pos = (base_pos + movement) % 360
+        new_positions[planet] = new_pos
+    
+    return new_positions
 
 # Function to calculate overall market sentiment
 def calculate_market_sentiment(planetary_data):
@@ -506,6 +543,10 @@ st.markdown(f'<div class="current-time">Current Time: {current_time}</div>', uns
 # Refresh button
 if st.button("Refresh Planetary Positions", key="refresh_btn"):
     update_planetary_degrees()
+    # Regenerate all data with updated degrees
+    st.session_state.planetary_data = generate_planetary_data(st.session_state.planetary_degrees)
+    st.session_state.timeline_data = generate_timeline_data(st.session_state.current_symbol)
+    st.session_state.trade_strategy = generate_trade_strategy(st.session_state.current_symbol, st.session_state.current_date)
     st.rerun()
 
 # Market sentiment display
@@ -850,6 +891,28 @@ Based on the planetary positions and transit timeline for today, the following s
 - **Position Sizing**: Limit exposure to 20% of trading capital per trade.
 - **Confirmation**: Always use technical indicators to confirm astrological signals.
 """
+
+# Check if date or symbol has changed
+if 'last_date' not in st.session_state:
+    st.session_state.last_date = date
+if 'last_symbol' not in st.session_state:
+    st.session_state.last_symbol = symbol
+
+# If date or symbol changed, update planetary positions and regenerate data
+if date != st.session_state.last_date or symbol != st.session_state.last_symbol:
+    # Calculate new planetary positions based on date
+    st.session_state.planetary_degrees = calculate_planetary_positions(date)
+    
+    # Update session state
+    st.session_state.last_date = date
+    st.session_state.last_symbol = symbol
+    st.session_state.current_date = date
+    st.session_state.current_symbol = symbol
+    
+    # Generate new data
+    st.session_state.planetary_data = generate_planetary_data(st.session_state.planetary_degrees)
+    st.session_state.timeline_data = generate_timeline_data(symbol)
+    st.session_state.trade_strategy = generate_trade_strategy(symbol, date)
 
 # Generate report when button is clicked
 if generate_btn:
