@@ -95,6 +95,14 @@ st.markdown("""
     .strategy-box strong {
         color: #495057;
     }
+    .report-header {
+        background-color: #e94560;
+        color: white;
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        font-weight: bold;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -122,8 +130,9 @@ st.sidebar.header("Input Parameters")
 # Date input
 date = st.sidebar.date_input("Date", value=st.session_state.current_date)
 
-# Symbol input
-symbol = st.sidebar.selectbox("Symbol", ["NIFTY", "BANKNIFTY", "RELIANCE", "TCS", "INFY"])
+# Symbol input - Changed to text input for any symbol
+symbol = st.sidebar.text_input("Symbol", value=st.session_state.current_symbol, 
+                              help="Enter any symbol like NIFTY, BANKNIFTY, GOLD, BTC, DOWJONES, etc.")
 
 # City input
 city = st.sidebar.text_input("City", value="Mumbai")
@@ -189,10 +198,14 @@ def generate_timeline_data(symbol):
     ]
 
 # Function to generate trade strategy
-def generate_trade_strategy(symbol):
-    if symbol == "NIFTY":
-        return """
+def generate_trade_strategy(symbol, date):
+    # Format date for display
+    date_str = date.strftime("%d %B %Y")
+    
+    if symbol.upper() == "NIFTY":
+        return f"""
 ### Nifty (Index) Trading Strategy
+<div class="report-header">Report for NIFTY on {date_str}</div>
 
 #### 1. Bearish Strategy (9:15 AM – 10:15 AM)
 - **Entry**: Short at open (9:15 AM) with stop-loss at 0.5% above entry.
@@ -214,9 +227,10 @@ def generate_trade_strategy(symbol):
 - **Avoid**: Trades during Moon hora (1:15 PM – 2:15 PM) due to extreme volatility.
 - **Focus**: Technical confirmation (e.g., support/resistance, RSI divergence) alongside astro signals.
 """
-    elif symbol == "BANKNIFTY":
-        return """
+    elif symbol.upper() == "BANKNIFTY":
+        return f"""
 ### Bank Nifty (Banking Index) Trading Strategy
+<div class="report-header">Report for BANKNIFTY on {date_str}</div>
 
 #### 1. Bearish Open (9:15 AM – 10:15 AM)
 - **Entry**: Short at open.
@@ -237,12 +251,88 @@ def generate_trade_strategy(symbol):
 - **Avoid**: Trades during Moon hora (1:15 PM – 2:15 PM) due to extreme volatility.
 - **Focus**: Technical confirmation (e.g., support/resistance, RSI divergence) alongside astro signals.
 """
+    elif symbol.upper() in ["GOLD", "XAUUSD"]:
+        return f"""
+### Gold Trading Strategy
+<div class="report-header">Report for GOLD on {date_str}</div>
+
+#### 1. Morning Reversal (9:15 AM – 10:30 AM)
+- **Entry**: Long on dip below 9:30 AM low.
+- **Target**: 0.5% rise by 10:30 AM.
+- **Rationale**: Jupiter's aspect on gold-friendly signs supports early buying.
+
+#### 2. Mid-day Consolidation (11:00 AM – 1:00 PM)
+- **Action**: Range-bound trading expected.
+- **Strategy**: Buy at support, sell at resistance.
+- **Rationale**: Venus influences create sideways movement.
+
+#### 3. Afternoon Breakout (1:30 PM – 2:30 PM)
+- **Entry**: Breakout above 1:15 PM high.
+- **Target**: 0.7% rise by 2:30 PM.
+- **Rationale**: Sun hora strengthens precious metals.
+
+### Risk Management
+- **Stop-Loss**: 0.3% for intraday trades.
+- **Position Size**: Limit to 15% of trading capital.
+- **Focus**: USD index movements alongside astro signals.
+"""
+    elif symbol.upper() in ["BTC", "BITCOIN"]:
+        return f"""
+### Bitcoin Trading Strategy
+<div class="report-header">Report for BITCOIN on {date_str}</div>
+
+#### 1. Morning Volatility (9:15 AM – 10:15 AM)
+- **Entry**: Short on rejection at 9:30 AM high.
+- **Target**: 1.5% decline by 10:15 AM.
+- **Rationale**: Rahu influence creates sharp reversals.
+
+#### 2. Mid-day Recovery (11:00 AM – 12:30 PM)
+- **Entry**: Long on bounce from 11:00 AM low.
+- **Target**: 1.2% rise by 12:30 PM.
+- **Rationale**: Mercury hora supports tech/crypto assets.
+
+#### 3. Afternoon Trend (1:15 PM – 3:00 PM)
+- **Entry**: Follow the 1:15 PM breakout direction.
+- **Target**: 1.0% move by 3:00 PM.
+- **Rationale**: Ketu influence creates sustained trends.
+
+### Risk Management
+- **Stop-Loss**: 0.8% for intraday trades.
+- **Position Size**: Limit to 10% of trading capital due to volatility.
+- **Focus**: Crypto market sentiment alongside astro signals.
+"""
+    elif symbol.upper() in ["DOWJONES", "DOW", "DJIA"]:
+        return f"""
+### Dow Jones Trading Strategy
+<div class="report-header">Report for DOWJONES on {date_str}</div>
+
+#### 1. Opening Drive (9:15 AM – 10:30 AM)
+- **Entry**: Short at open with 0.3% stop-loss.
+- **Target**: 0.6% decline by 10:30 AM.
+- **Rationale**: Saturn-Rahu conjunction pressures equities.
+
+#### 2. Mid-day Reversal (11:00 AM – 12:30 PM)
+- **Entry**: Long on bounce from 11:00 AM low.
+- **Target**: 0.5% rise by 12:30 PM.
+- **Rationale**: Jupiter's aspect provides temporary support.
+
+#### 3. Afternoon Trend (1:15 PM – 3:00 PM)
+- **Entry**: Follow the 1:15 PM breakout direction.
+- **Target**: 0.4% move by 3:00 PM.
+- **Rationale**: Sun hora influences market direction.
+
+### Risk Management
+- **Stop-Loss**: 0.3% for intraday trades.
+- **Position Size**: Limit to 20% of trading capital.
+- **Focus**: VIX index alongside astro signals.
+"""
     else:
         return f"""
 ### {symbol} Trading Strategy
+<div class="report-header">Report for {symbol} on {date_str}</div>
 
 #### General Approach
-Based on the planetary positions and transit timeline for today, the following strategy is recommended:
+Based on the planetary positions and transit timeline for today, the following strategy is recommended for {symbol}:
 
 1. **Morning Session (9:15 AM - 12:00 PM)**: 
    - Bearish sentiment dominates in the first hour. Consider short positions with tight stop-loss.
@@ -339,7 +429,7 @@ if generate_btn:
     # Generate data
     st.session_state.planetary_data = generate_planetary_data(datetime_obj, city)
     st.session_state.timeline_data = generate_timeline_data(symbol)
-    st.session_state.trade_strategy = generate_trade_strategy(symbol)
+    st.session_state.trade_strategy = generate_trade_strategy(symbol, date)
     
     # Show success message
     st.sidebar.success("Report generated successfully!")
@@ -451,4 +541,4 @@ st.markdown('<div class="status-bar">© 2025 Planetary Trading Dashboard | Statu
 # Auto-refresh every minute
 if time.time() - st.session_state.last_update > 60:
     st.session_state.last_update = time.time()
-    st.rerun()  # Updated from st.experimental_rerun()
+    st.rerun()
