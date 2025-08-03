@@ -451,4 +451,4 @@ st.markdown('<div class="status-bar">© 2025 Planetary Trading Dashboard | Statu
 # Auto-refresh every minute
 if time.time() - st.session_state.last_update > 60:
     st.session_state.last_update = time.time()
-    st.experimental_rerun()
+    st.rerun()  # Updated from st.experimental_rerun()
