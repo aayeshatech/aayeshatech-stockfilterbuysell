@@ -34,15 +34,15 @@ st.markdown("""
         margin-bottom: 2rem;
     }
     .bearish {
-        color: #ff4b4b;
+        color: #d32f2f;
         font-weight: bold;
     }
     .bullish {
-        color: #4fff4b;
+        color: #388e3c;
         font-weight: bold;
     }
     .volatile {
-        color: #ffb84d;
+        color: #f57c00;
         font-weight: bold;
     }
     .dataframe {
@@ -69,10 +69,31 @@ st.markdown("""
         font-weight: bold;
     }
     .strategy-box {
-        background-color: #0f3460;
+        background-color: #f8f9fa;
         padding: 20px;
         border-radius: 10px;
         margin-top: 20px;
+        color: #333333;
+        border-left: 5px solid #e94560;
+    }
+    .strategy-box h3 {
+        color: #e94560;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 10px;
+        margin-top: 0;
+    }
+    .strategy-box h4 {
+        color: #495057;
+        margin-top: 20px;
+    }
+    .strategy-box ul {
+        padding-left: 20px;
+    }
+    .strategy-box li {
+        margin-bottom: 8px;
+    }
+    .strategy-box strong {
+        color: #495057;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -337,11 +358,11 @@ with tab1:
         # Add color formatting
         def highlight_sentiment(val):
             if "Bullish" in val:
-                return 'color: #4fff4b'
+                return 'color: #388e3c'
             elif "Bearish" in val:
-                return 'color: #ff4b4b'
+                return 'color: #d32f2f'
             else:
-                return 'color: #ffb84d'
+                return 'color: #f57c00'
         
         # Display table with color formatting
         st.dataframe(
