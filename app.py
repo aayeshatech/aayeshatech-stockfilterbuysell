@@ -171,6 +171,15 @@ st.markdown("""
         font-weight: bold;
         margin-bottom: 10px;
     }
+    .update-indicator {
+        background-color: #e94560;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        display: inline-block;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -200,6 +209,8 @@ if 'last_symbol' not in st.session_state:
     st.session_state.last_symbol = st.session_state.current_symbol
 if 'auto_update' not in st.session_state:
     st.session_state.auto_update = True
+if 'update_count' not in st.session_state:
+    st.session_state.update_count = 0
 
 # Function to determine market type
 def get_market_type(symbol):
@@ -872,6 +883,7 @@ def update_all_data(date, symbol):
     st.session_state.last_symbol = symbol
     st.session_state.current_date = date
     st.session_state.current_symbol = symbol
+    st.session_state.update_count += 1
     
     # Generate new data
     st.session_state.planetary_data = generate_planetary_data(st.session_state.planetary_degrees)
@@ -885,6 +897,10 @@ st.markdown('<div class="sub-header">Astrowise & Gann Wise Trading System</div>'
 # Current time display
 current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 st.markdown(f'<div class="current-time">Current Time: {current_time}</div>', unsafe_allow_html=True)
+
+# Update indicator
+if st.session_state.update_count > 0:
+    st.markdown(f'<div class="update-indicator">✅ Data updated {st.session_state.update_count} time(s)</div>', unsafe_allow_html=True)
 
 # Auto-update indicator
 if st.session_state.auto_update:
