@@ -166,6 +166,11 @@ st.markdown("""
         height: 3px;
         margin-right: 5px;
     }
+    .auto-update {
+        color: #388e3c;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -193,6 +198,8 @@ if 'last_date' not in st.session_state:
     st.session_state.last_date = st.session_state.current_date
 if 'last_symbol' not in st.session_state:
     st.session_state.last_symbol = st.session_state.current_symbol
+if 'auto_update' not in st.session_state:
+    st.session_state.auto_update = True
 
 # Function to determine market type
 def get_market_type(symbol):
@@ -855,6 +862,22 @@ Based on the planetary positions and transit timeline for today, the following s
 - **Confirmation**: Always use technical indicators to confirm astrological signals.
 """
 
+# Function to update all data based on current inputs
+def update_all_data(date, symbol):
+    # Calculate new planetary positions based on date
+    st.session_state.planetary_degrees = calculate_planetary_positions(date)
+    
+    # Update session state
+    st.session_state.last_date = date
+    st.session_state.last_symbol = symbol
+    st.session_state.current_date = date
+    st.session_state.current_symbol = symbol
+    
+    # Generate new data
+    st.session_state.planetary_data = generate_planetary_data(st.session_state.planetary_degrees)
+    st.session_state.timeline_data = generate_timeline_data(symbol)
+    st.session_state.trade_strategy = generate_trade_strategy(symbol, date)
+
 # Header
 st.markdown('<div class="main-header">INTRADAY PLANETARY TRANSIT TRADING DASHBOARD</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Astrowise & Gann Wise Trading System</div>', unsafe_allow_html=True)
@@ -862,6 +885,10 @@ st.markdown('<div class="sub-header">Astrowise & Gann Wise Trading System</div>'
 # Current time display
 current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 st.markdown(f'<div class="current-time">Current Time: {current_time}</div>', unsafe_allow_html=True)
+
+# Auto-update indicator
+if st.session_state.auto_update:
+    st.markdown('<div class="auto-update">✅ Auto-update enabled - Data refreshes automatically when date or symbol changes</div>', unsafe_allow_html=True)
 
 # Refresh button
 if st.button("Refresh Planetary Positions", key="refresh_btn"):
@@ -893,24 +920,16 @@ city = st.sidebar.text_input("City", value="Mumbai")
 # Time input
 time_input = st.sidebar.time_input("Time", value=datetime.time(9, 15))
 
+# Auto-update toggle
+auto_update = st.sidebar.checkbox("Auto-update data when parameters change", value=st.session_state.auto_update)
+st.session_state.auto_update = auto_update
+
 # Generate button
 generate_btn = st.sidebar.button("Generate Report")
 
-# Check if date or symbol has changed
-if date != st.session_state.last_date or symbol != st.session_state.last_symbol:
-    # Calculate new planetary positions based on date
-    st.session_state.planetary_degrees = calculate_planetary_positions(date)
-    
-    # Update session state
-    st.session_state.last_date = date
-    st.session_state.last_symbol = symbol
-    st.session_state.current_date = date
-    st.session_state.current_symbol = symbol
-    
-    # Generate new data
-    st.session_state.planetary_data = generate_planetary_data(st.session_state.planetary_degrees)
-    st.session_state.timeline_data = generate_timeline_data(symbol)
-    st.session_state.trade_strategy = generate_trade_strategy(symbol, date)
+# Auto-update data if date or symbol changed and auto-update is enabled
+if st.session_state.auto_update and (date != st.session_state.last_date or symbol != st.session_state.last_symbol):
+    update_all_data(date, symbol)
 
 # Generate report when button is clicked
 if generate_btn:
@@ -922,16 +941,14 @@ if generate_btn:
     datetime_obj = datetime.datetime.combine(date, time_input)
     
     # Generate data
-    st.session_state.planetary_data = generate_planetary_data(st.session_state.planetary_degrees)
-    st.session_state.timeline_data = generate_timeline_data(symbol)
-    st.session_state.trade_strategy = generate_trade_strategy(symbol, date)
+    update_all_data(date, symbol)
     
     # Show success message
     st.sidebar.success("Report generated successfully!")
 
 # Generate planetary data if not already generated
 if not st.session_state.planetary_data:
-    st.session_state.planetary_data = generate_planetary_data(st.session_state.planetary_degrees)
+    update_all_data(st.session_state.current_date, st.session_state.current_symbol)
 
 # Calculate aspects
 aspects = calculate_aspects(st.session_state.planetary_degrees)
