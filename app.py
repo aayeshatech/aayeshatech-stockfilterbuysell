@@ -180,6 +180,43 @@ st.markdown("""
         margin-bottom: 10px;
         display: inline-block;
     }
+    .forecast-day {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-left: 5px solid #e94560;
+    }
+    .forecast-day-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .forecast-day-title {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: #333333;
+    }
+    .forecast-day-sentiment {
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    .forecast-content {
+        margin-top: 10px;
+    }
+    .forecast-section {
+        margin-bottom: 15px;
+    }
+    .forecast-section-title {
+        font-weight: bold;
+        color: #495057;
+        margin-bottom: 5px;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 5px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -190,6 +227,8 @@ if 'timeline_data' not in st.session_state:
     st.session_state.timeline_data = None
 if 'trade_strategy' not in st.session_state:
     st.session_state.trade_strategy = None
+if 'forecast_data' not in st.session_state:
+    st.session_state.forecast_data = None
 if 'current_symbol' not in st.session_state:
     st.session_state.current_symbol = "NIFTY"
 if 'current_date' not in st.session_state:
@@ -265,7 +304,7 @@ def calculate_planetary_positions(date):
     return new_positions
 
 # Function to calculate overall market sentiment
-def calculate_market_sentiment(planetary_data):
+def calculate_market_sentiment(planetary_data, aspects):
     bullish_count = 0
     bearish_count = 0
     
@@ -277,8 +316,6 @@ def calculate_market_sentiment(planetary_data):
             bearish_count += 1
     
     # Calculate aspects
-    aspects = calculate_aspects(st.session_state.planetary_degrees)
-    
     for aspect in aspects:
         if aspect["type"] in ["Trine", "Sextile"]:
             bullish_count += 1
@@ -554,14 +591,17 @@ def create_zodiac_wheel_with_aspects(planetary_data, aspects):
     img_str = base64.b64encode(buffered.getvalue()).decode()
     return f"data:image/png;base64,{img_str}"
 
-# Function to generate timeline data based on market type
-def generate_timeline_data(symbol):
+# Function to generate timeline data based on market type and date
+def generate_timeline_data(symbol, date):
     market_type = get_market_type(symbol)
+    
+    # Get day of week
+    day_of_week = date.strftime("%A")
     
     if market_type == "Indian":
         # Indian market timeline (9:15 AM to 3:30 PM)
         return [
-            {"Time": "9:15 AM", "Event": "Market Open - Moon in Jyeshtha (Scorpio)", 
+            {"Time": "9:15 AM", "Event": f"Market Open - {day_of_week}", 
              "Influence": "Rahu aspects Moon (exact trine). Saturn-Rahu conjunction creates volatility.", 
              "Sentiment": "Bearish"},
             {"Time": "10:15 AM", "Event": "Mercury Hora starts", 
@@ -589,7 +629,7 @@ def generate_timeline_data(symbol):
     else:
         # International market timeline (5:00 AM to 11:55 PM)
         return [
-            {"Time": "5:00 AM", "Event": "Market Open - Moon in Jyeshtha (Scorpio)", 
+            {"Time": "5:00 AM", "Event": f"Market Open - {day_of_week}", 
              "Influence": "Rahu aspects Moon (exact trine). Saturn-Rahu conjunction creates volatility.", 
              "Sentiment": "Bearish"},
             {"Time": "7:00 AM", "Event": "Mercury Hora starts", 
@@ -873,6 +913,51 @@ Based on the planetary positions and transit timeline for today, the following s
 - **Confirmation**: Always use technical indicators to confirm astrological signals.
 """
 
+# Function to generate forecast data
+def generate_forecast_data(symbol, center_date):
+    forecast_data = []
+    
+    # Generate dates for 3 days before and 3 days after the selected date
+    for i in range(-3, 4):
+        date = center_date + datetime.timedelta(days=i)
+        
+        # Calculate planetary positions for this date
+        planetary_degrees = calculate_planetary_positions(date)
+        
+        # Generate planetary data
+        planetary_data = generate_planetary_data(planetary_degrees)
+        
+        # Calculate aspects
+        aspects = calculate_aspects(planetary_degrees)
+        
+        # Filter moon aspects
+        moon_aspects = [aspect for aspect in aspects if aspect["planet1"] == "Moon" or aspect["planet2"] == "Moon"]
+        
+        # Generate timeline data for this date
+        timeline_data = generate_timeline_data(symbol, date)
+        
+        # Calculate sentiment
+        sentiment, sentiment_class = calculate_market_sentiment(planetary_data, aspects)
+        
+        # Format date for display
+        date_str = date.strftime("%d %B %Y")
+        day_name = date.strftime("%A")
+        
+        # Add to forecast data
+        forecast_data.append({
+            "date": date,
+            "date_str": date_str,
+            "day_name": day_name,
+            "sentiment": sentiment,
+            "sentiment_class": sentiment_class,
+            "planetary_data": planetary_data,
+            "aspects": aspects,
+            "moon_aspects": moon_aspects,
+            "timeline_data": timeline_data
+        })
+    
+    return forecast_data
+
 # Function to update all data based on current inputs
 def update_all_data(date, symbol):
     # Calculate new planetary positions based on date
@@ -887,8 +972,9 @@ def update_all_data(date, symbol):
     
     # Generate new data
     st.session_state.planetary_data = generate_planetary_data(st.session_state.planetary_degrees)
-    st.session_state.timeline_data = generate_timeline_data(symbol)
+    st.session_state.timeline_data = generate_timeline_data(symbol, date)
     st.session_state.trade_strategy = generate_trade_strategy(symbol, date)
+    st.session_state.forecast_data = generate_forecast_data(symbol, date)
 
 # Header
 st.markdown('<div class="main-header">INTRADAY PLANETARY TRANSIT TRADING DASHBOARD</div>', unsafe_allow_html=True)
@@ -911,13 +997,14 @@ if st.button("Refresh Planetary Positions", key="refresh_btn"):
     update_planetary_degrees()
     # Regenerate all data with updated degrees
     st.session_state.planetary_data = generate_planetary_data(st.session_state.planetary_degrees)
-    st.session_state.timeline_data = generate_timeline_data(st.session_state.current_symbol)
+    st.session_state.timeline_data = generate_timeline_data(st.session_state.current_symbol, st.session_state.current_date)
     st.session_state.trade_strategy = generate_trade_strategy(st.session_state.current_symbol, st.session_state.current_date)
+    st.session_state.forecast_data = generate_forecast_data(st.session_state.current_symbol, st.session_state.current_date)
     st.rerun()
 
 # Market sentiment display
 if st.session_state.planetary_data:
-    sentiment, sentiment_class = calculate_market_sentiment(st.session_state.planetary_data)
+    sentiment, sentiment_class = calculate_market_sentiment(st.session_state.planetary_data, calculate_aspects(st.session_state.planetary_degrees))
     st.markdown(f'<div class="sentiment-box {sentiment_class}"><h2>{sentiment}</h2></div>', unsafe_allow_html=True)
 
 # Sidebar for inputs
@@ -970,7 +1057,7 @@ if not st.session_state.planetary_data:
 aspects = calculate_aspects(st.session_state.planetary_degrees)
 
 # Create tabs
-tab1, tab2, tab3 = st.tabs(["Transit Timeline", "Planetary Positions", "Trade Execution Strategy"])
+tab1, tab2, tab3, tab4 = st.tabs(["Transit Timeline", "Planetary Positions", "Trade Execution Strategy", "Forecast"])
 
 # Tab 1: Transit Timeline
 with tab1:
@@ -1107,6 +1194,99 @@ with tab3:
         st.markdown(f'<div class="strategy-box">{st.session_state.trade_strategy}</div>', unsafe_allow_html=True)
     else:
         st.info("Generate a report to see trade execution strategy.")
+
+# Tab 4: Forecast
+with tab4:
+    st.header("6-Day Forecast")
+    
+    if st.session_state.forecast_data:
+        # Display market type
+        market_type = get_market_type(st.session_state.current_symbol)
+        st.markdown(f'<div class="market-type">{market_type} Market</div>', unsafe_allow_html=True)
+        
+        # Display forecast summary
+        st.subheader("Forecast Summary")
+        
+        # Create summary DataFrame
+        summary_data = []
+        for day_data in st.session_state.forecast_data:
+            summary_data.append({
+                "Date": day_data["date_str"],
+                "Day": day_data["day_name"],
+                "Sentiment": day_data["sentiment"]
+            })
+        
+        summary_df = pd.DataFrame(summary_data)
+        
+        # Add color formatting
+        def highlight_sentiment(val):
+            if "Bullish" in val:
+                return 'color: #388e3c'
+            elif "Bearish" in val:
+                return 'color: #d32f2f'
+            else:
+                return 'color: #f57c00'
+        
+        # Display table with color formatting
+        st.dataframe(
+            summary_df.style.applymap(highlight_sentiment, subset=['Sentiment']),
+            use_container_width=True
+        )
+        
+        # Display detailed forecast for each day
+        st.subheader("Detailed Forecast")
+        
+        for day_data in st.session_state.forecast_data:
+            # Create expander for each day
+            with st.expander(f"{day_data['date_str']} - {day_data['sentiment']}"):
+                # Display day header with sentiment
+                st.markdown(f"""
+                <div class="forecast-day-header">
+                    <div class="forecast-day-title">{day_data['date_str']} ({day_data['day_name']})</div>
+                    <div class="forecast-day-sentiment {day_data['sentiment_class']}">{day_data['sentiment']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Display planetary positions
+                st.markdown('<div class="forecast-section-title">Planetary Positions</div>', unsafe_allow_html=True)
+                planet_df = pd.DataFrame(day_data["planetary_data"])
+                st.dataframe(planet_df, use_container_width=True)
+                
+                # Display aspects
+                st.markdown('<div class="forecast-section-title">Astro Aspects</div>', unsafe_allow_html=True)
+                if day_data["aspects"]:
+                    aspects_df = pd.DataFrame(day_data["aspects"])
+                    st.dataframe(aspects_df, use_container_width=True)
+                else:
+                    st.write("No significant aspects on this day.")
+                
+                # Display moon aspects
+                st.markdown('<div class="forecast-section-title">Moon Aspects</div>', unsafe_allow_html=True)
+                if day_data["moon_aspects"]:
+                    moon_aspects_df = pd.DataFrame(day_data["moon_aspects"])
+                    st.dataframe(moon_aspects_df, use_container_width=True)
+                else:
+                    st.write("No significant Moon aspects on this day.")
+                
+                # Display timeline
+                st.markdown('<div class="forecast-section-title">Planetary Transit Timeline</div>', unsafe_allow_html=True)
+                timeline_df = pd.DataFrame(day_data["timeline_data"])
+                
+                # Add color formatting
+                def highlight_timeline_sentiment(val):
+                    if "Bullish" in val:
+                        return 'color: #388e3c'
+                    elif "Bearish" in val:
+                        return 'color: #d32f2f'
+                    else:
+                        return 'color: #f57c00'
+                
+                st.dataframe(
+                    timeline_df.style.applymap(highlight_timeline_sentiment, subset=['Sentiment']),
+                    use_container_width=True
+                )
+    else:
+        st.info("Generate a report to see the forecast.")
 
 # Status bar
 st.markdown('<div class="status-bar">© 2025 Planetary Trading Dashboard | Status: Ready</div>', unsafe_allow_html=True)
