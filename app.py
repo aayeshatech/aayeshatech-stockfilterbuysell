@@ -111,6 +111,61 @@ st.markdown("""
         display: inline-block;
         margin-bottom: 10px;
     }
+    .sentiment-box {
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .highly-bullish {
+        background-color: rgba(56, 142, 60, 0.2);
+        border: 2px solid #388e3c;
+        color: #388e3c;
+    }
+    .highly-bearish {
+        background-color: rgba(211, 47, 47, 0.2);
+        border: 2px solid #d32f2f;
+        color: #d32f2f;
+    }
+    .neutral {
+        background-color: rgba(245, 124, 0, 0.2);
+        border: 2px solid #f57c00;
+        color: #f57c00;
+    }
+    .current-time {
+        font-size: 1.2rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 10px;
+    }
+    .refresh-btn {
+        background-color: #e94560;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+    .refresh-btn:hover {
+        background-color: #d63450;
+    }
+    .aspect-legend {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+    .aspect-item {
+        display: flex;
+        align-items: center;
+        margin: 0 10px;
+    }
+    .aspect-color {
+        width: 20px;
+        height: 3px;
+        margin-right: 5px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -127,6 +182,13 @@ if 'current_date' not in st.session_state:
     st.session_state.current_date = datetime.date(2025, 8, 4)
 if 'last_update' not in st.session_state:
     st.session_state.last_update = time.time()
+if 'planetary_degrees' not in st.session_state:
+    # Initialize planetary degrees
+    st.session_state.planetary_degrees = {
+        "Sun": 117.5, "Moon": 230.0, "Mercury": 130.0, 
+        "Venus": 125.0, "Mars": 110.0, "Jupiter": 40.0, 
+        "Saturn": 335.0, "Rahu": 350.0, "Ketu": 170.0
+    }
 
 # Function to determine market type
 def get_market_type(symbol):
@@ -143,9 +205,313 @@ def get_market_type(symbol):
         # Default to International for unknown symbols
         return "International"
 
+# Function to calculate overall market sentiment
+def calculate_market_sentiment(planetary_data):
+    bullish_count = 0
+    bearish_count = 0
+    
+    # Simple sentiment calculation based on planetary positions
+    for planet in planetary_data:
+        if planet["Planet"] in ["Jupiter", "Venus"]:
+            bullish_count += 1
+        elif planet["Planet"] in ["Saturn", "Mars", "Rahu", "Ketu"]:
+            bearish_count += 1
+    
+    # Calculate aspects
+    aspects = calculate_aspects(st.session_state.planetary_degrees)
+    
+    for aspect in aspects:
+        if aspect["type"] in ["Trine", "Sextile"]:
+            bullish_count += 1
+        elif aspect["type"] in ["Square", "Opposition"]:
+            bearish_count += 1
+    
+    # Determine overall sentiment
+    if bullish_count > bearish_count * 1.5:
+        return "Highly Bullish", "highly-bullish"
+    elif bearish_count > bullish_count * 1.5:
+        return "Highly Bearish", "highly-bearish"
+    elif bullish_count > bearish_count:
+        return "Bullish", "bullish"
+    elif bearish_count > bullish_count:
+        return "Bearish", "bearish"
+    else:
+        return "Neutral", "neutral"
+
+# Function to calculate aspects between planets
+def calculate_aspects(degrees):
+    aspects = []
+    planets = list(degrees.keys())
+    
+    # Define aspect types and their orbs
+    aspect_types = {
+        "Conjunction": {"angle": 0, "orb": 8},
+        "Sextile": {"angle": 60, "orb": 8},
+        "Square": {"angle": 90, "orb": 8},
+        "Trine": {"angle": 120, "orb": 8},
+        "Opposition": {"angle": 180, "orb": 8}
+    }
+    
+    # Check all pairs of planets
+    for i in range(len(planets)):
+        for j in range(i+1, len(planets)):
+            planet1 = planets[i]
+            planet2 = planets[j]
+            
+            # Calculate angular distance
+            angle1 = degrees[planet1]
+            angle2 = degrees[planet2]
+            
+            # Find the smallest angle between the two planets
+            diff = abs(angle1 - angle2) % 360
+            if diff > 180:
+                diff = 360 - diff
+            
+            # Check for aspects
+            for aspect_name, aspect_data in aspect_types.items():
+                aspect_angle = aspect_data["angle"]
+                orb = aspect_data["orb"]
+                
+                if abs(diff - aspect_angle) <= orb:
+                    aspects.append({
+                        "planet1": planet1,
+                        "planet2": planet2,
+                        "type": aspect_name,
+                        "angle": diff,
+                        "orb": abs(diff - aspect_angle)
+                    })
+    
+    return aspects
+
+# Function to update planetary degrees (simulate movement)
+def update_planetary_degrees():
+    # Simulate planetary movement by adding small random changes
+    for planet in st.session_state.planetary_degrees:
+        # Different planets move at different speeds
+        if planet == "Moon":
+            movement = np.random.uniform(0.3, 0.5)  # Moon moves fastest
+        elif planet == "Sun":
+            movement = np.random.uniform(0.05, 0.1)  # Sun moves slower
+        elif planet in ["Mercury", "Venus"]:
+            movement = np.random.uniform(0.1, 0.2)
+        elif planet == "Mars":
+            movement = np.random.uniform(0.05, 0.08)
+        elif planet == "Jupiter":
+            movement = np.random.uniform(0.02, 0.04)
+        elif planet == "Saturn":
+            movement = np.random.uniform(0.01, 0.02)
+        else:  # Rahu/Ketu
+            movement = np.random.uniform(0.03, 0.05)
+        
+        # Update degree
+        st.session_state.planetary_degrees[planet] = (st.session_state.planetary_degrees[planet] + movement) % 360
+
+# Function to get sign from degree
+def get_sign_from_degree(degree):
+    signs = [
+        ("Aries", 0, 30), ("Taurus", 30, 60), ("Gemini", 60, 90),
+        ("Cancer", 90, 120), ("Leo", 120, 150), ("Virgo", 150, 180),
+        ("Libra", 180, 210), ("Scorpio", 210, 240), ("Sagittarius", 240, 270),
+        ("Capricorn", 270, 300), ("Aquarius", 300, 330), ("Pisces", 330, 360)
+    ]
+    
+    for sign, start, end in signs:
+        if start <= degree < end:
+            return sign
+    
+    return "Aries"  # Default
+
+# Function to get nakshatra from degree
+def get_nakshatra_from_degree(degree):
+    nakshatras = [
+        ("Ashwini", 0, 13.2), ("Bharani", 13.2, 26.4), ("Krittika", 26.4, 40),
+        ("Rohini", 40, 53.2), ("Mrigashira", 53.2, 66.4), ("Ardra", 66.4, 80),
+        ("Punarvasu", 80, 93.2), ("Pushya", 93.2, 106.4), ("Ashlesha", 106.4, 120),
+        ("Magha", 120, 133.2), ("Purva Phalguni", 133.2, 146.4), ("Uttara Phalguni", 146.4, 160),
+        ("Hasta", 160, 173.2), ("Chitra", 173.2, 186.4), ("Swati", 186.4, 200),
+        ("Vishakha", 200, 213.2), ("Anuradha", 213.2, 226.4), ("Jyeshtha", 226.4, 240),
+        ("Mula", 240, 253.2), ("Purva Ashadha", 253.2, 266.4), ("Uttara Ashadha", 266.4, 280),
+        ("Shravana", 280, 293.2), ("Dhanishta", 293.2, 306.4), ("Shatabhisha", 306.4, 320),
+        ("Purva Bhadrapada", 320, 333.2), ("Uttara Bhadrapada", 333.2, 346.4), ("Revati", 346.4, 360)
+    ]
+    
+    for nakshatra, start, end in nakshatras:
+        if start <= degree < end:
+            return nakshatra
+    
+    return "Ashwini"  # Default
+
+# Function to get lord of sign
+def get_sign_lord(sign):
+    sign_lords = {
+        "Aries": "Mars", "Taurus": "Venus", "Gemini": "Mercury",
+        "Cancer": "Moon", "Leo": "Sun", "Virgo": "Mercury",
+        "Libra": "Venus", "Scorpio": "Mars", "Sagittarius": "Jupiter",
+        "Capricorn": "Saturn", "Aquarius": "Saturn", "Pisces": "Jupiter"
+    }
+    return sign_lords.get(sign, "Unknown")
+
+# Function to get lord of nakshatra
+def get_nakshatra_lord(nakshatra):
+    nakshatra_lords = {
+        "Ashwini": "Ketu", "Bharani": "Venus", "Krittika": "Sun",
+        "Rohini": "Moon", "Mrigashira": "Mars", "Ardra": "Rahu",
+        "Punarvasu": "Jupiter", "Pushya": "Saturn", "Ashlesha": "Mercury",
+        "Magha": "Ketu", "Purva Phalguni": "Venus", "Uttara Phalguni": "Sun",
+        "Hasta": "Moon", "Chitra": "Mars", "Swati": "Rahu",
+        "Vishakha": "Jupiter", "Anuradha": "Saturn", "Jyeshtha": "Mercury",
+        "Mula": "Ketu", "Purva Ashadha": "Venus", "Uttara Ashadha": "Sun",
+        "Shravana": "Moon", "Dhanishta": "Mars", "Shatabhisha": "Rahu",
+        "Purva Bhadrapada": "Jupiter", "Uttara Bhadrapada": "Saturn", "Revati": "Mercury"
+    }
+    return nakshatra_lords.get(nakshatra, "Unknown")
+
+# Function to generate planetary data based on current degrees
+def generate_planetary_data(degrees):
+    planetary_data = []
+    
+    for planet, degree in degrees.items():
+        sign = get_sign_from_degree(degree)
+        nakshatra = get_nakshatra_from_degree(degree)
+        sign_lord = get_sign_lord(sign)
+        nakshatra_lord = get_nakshatra_lord(nakshatra)
+        
+        # Format degree
+        deg = int(degree)
+        min = int((degree - deg) * 60)
+        degree_str = f"{deg}° {min}'"
+        
+        # Determine house (simplified)
+        house = (int(degree) // 30) + 1
+        
+        planetary_data.append({
+            "Planet": planet,
+            "Sign": sign,
+            "Degree": degree_str,
+            "Nakshatra": nakshatra,
+            "Lord": sign_lord,
+            "Sublord": nakshatra_lord,
+            "House": house
+        })
+    
+    return planetary_data
+
+# Function to create zodiac wheel visualization with aspects
+def create_zodiac_wheel_with_aspects(planetary_data, aspects):
+    # Create a blank image
+    img = Image.new('RGB', (800, 800), color='#0f3460')
+    draw = ImageDraw.Draw(img)
+    
+    # Define parameters
+    center_x, center_y = 400, 400
+    radius = 300
+    
+    # Draw zodiac circle
+    draw.ellipse((center_x - radius, center_y - radius, center_x + radius, center_y + radius), outline='#e94560', width=2)
+    
+    # Draw zodiac signs
+    signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
+            "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
+    
+    try:
+        font = ImageFont.truetype("arial.ttf", 14)
+        small_font = ImageFont.truetype("arial.ttf", 10)
+    except:
+        font = ImageFont.load_default()
+        small_font = ImageFont.load_default()
+    
+    for i, sign in enumerate(signs):
+        angle = i * 30  # 30 degrees per sign
+        rad = math.radians(angle)
+        x = center_x + (radius - 40) * math.cos(rad)
+        y = center_y + (radius - 40) * math.sin(rad)
+        draw.text((x, y), sign, fill='white', font=font)
+    
+    # Draw aspects
+    aspect_colors = {
+        "Conjunction": "#ffcc00",  # Yellow
+        "Sextile": "#00ccff",     # Light Blue
+        "Square": "#ff3366",      # Pink
+        "Trine": "#33cc33",       # Green
+        "Opposition": "#ff6633"   # Orange
+    }
+    
+    # Get planet positions
+    planet_positions = {}
+    for planet in planetary_data:
+        sign = planet["Sign"]
+        if sign in signs:
+            angle = signs.index(sign) * 30
+            # Add degree offset within sign
+            degree_str = planet["Degree"]
+            deg = int(degree_str.split("°")[0])
+            min = int(degree_str.split("'")[0].split(" ")[1])
+            angle += (deg % 30) + (min / 60)
+            
+            rad = math.radians(angle)
+            x = center_x + (radius - 80) * math.cos(rad)
+            y = center_y + (radius - 80) * math.sin(rad)
+            planet_positions[planet["Planet"]] = (x, y, angle)
+    
+    # Draw aspect lines
+    for aspect in aspects:
+        planet1 = aspect["planet1"]
+        planet2 = aspect["planet2"]
+        aspect_type = aspect["type"]
+        
+        if planet1 in planet_positions and planet2 in planet_positions:
+            x1, y1, _ = planet_positions[planet1]
+            x2, y2, _ = planet_positions[planet2]
+            
+            # Draw line with aspect color
+            draw.line([(x1, y1), (x2, y2)], fill=aspect_colors[aspect_type], width=2)
+    
+    # Draw planets
+    planet_colors = {
+        "Sun": "#ffcc00", "Moon": "#cccccc", "Mercury": "#b0b0b0", 
+        "Venus": "#e39e1c", "Mars": "#ff0000", "Jupiter": "#ff9900", 
+        "Saturn": "#ffcc99", "Rahu": "#4b0082", "Ketu": "#8b008b"
+    }
+    
+    for planet, (x, y, angle) in planet_positions.items():
+        # Draw planet
+        color = planet_colors.get(planet, "#ffffff")
+        draw.ellipse((x-12, y-12, x+12, y+12), fill=color, outline='white')
+        
+        # Draw planet label and degree
+        degree_str = f"{planet}\n{angle:.1f}°"
+        draw.text((x-20, y-40), degree_str, fill='white', font=small_font, anchor='mm')
+    
+    # Draw aspect legend
+    legend_y = 20
+    for aspect_type, color in aspect_colors.items():
+        draw.line([(20, legend_y), (50, legend_y)], fill=color, width=2)
+        draw.text((60, legend_y-5), aspect_type, fill='white', font=small_font)
+        legend_y += 20
+    
+    # Convert to base64 for display
+    buffered = io.BytesIO()
+    img.save(buffered, format="PNG")
+    img_str = base64.b64encode(buffered.getvalue()).decode()
+    return f"data:image/png;base64,{img_str}"
+
 # Header
 st.markdown('<div class="main-header">INTRADAY PLANETARY TRANSIT TRADING DASHBOARD</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Astrowise & Gann Wise Trading System</div>', unsafe_allow_html=True)
+
+# Current time display
+current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+st.markdown(f'<div class="current-time">Current Time: {current_time}</div>', unsafe_allow_html=True)
+
+# Refresh button
+if st.button("Refresh Planetary Positions", key="refresh_btn"):
+    update_planetary_degrees()
+    st.rerun()
+
+# Market sentiment display
+if st.session_state.planetary_data:
+    sentiment, sentiment_class = calculate_market_sentiment(st.session_state.planetary_data)
+    st.markdown(f'<div class="sentiment-box {sentiment_class}"><h2>{sentiment}</h2></div>', unsafe_allow_html=True)
 
 # Sidebar for inputs
 st.sidebar.header("Input Parameters")
@@ -165,30 +531,6 @@ time_input = st.sidebar.time_input("Time", value=datetime.time(9, 15))
 
 # Generate button
 generate_btn = st.sidebar.button("Generate Report")
-
-# Function to generate planetary data
-def generate_planetary_data(datetime_obj, city):
-    # Mock planetary data for demonstration
-    return [
-        {"Planet": "Sun", "Sign": "Cancer", "Degree": "17° 30'", "Nakshatra": "Ashlesha", 
-         "Lord": "Moon", "Sublord": "Mercury", "House": "2"},
-        {"Planet": "Moon", "Sign": "Scorpio", "Degree": "20° 00'", "Nakshatra": "Jyeshtha", 
-         "Lord": "Mercury", "Sublord": "Ketu", "House": "6"},
-        {"Planet": "Mercury", "Sign": "Leo", "Degree": "10° 00'", "Nakshatra": "Magha", 
-         "Lord": "Sun", "Sublord": "Ketu", "House": "3"},
-        {"Planet": "Venus", "Sign": "Leo", "Degree": "5° 00'", "Nakshatra": "Magha", 
-         "Lord": "Sun", "Sublord": "Ketu", "House": "3"},
-        {"Planet": "Mars", "Sign": "Cancer", "Degree": "10° 00'", "Nakshatra": "Pushya", 
-         "Lord": "Saturn", "Sublord": "Mercury", "House": "2"},
-        {"Planet": "Jupiter", "Sign": "Taurus", "Degree": "10° 00'", "Nakshatra": "Krittika", 
-         "Lord": "Sun", "Sublord": "Venus", "House": "12"},
-        {"Planet": "Saturn", "Sign": "Pisces", "Degree": "5° 00'", "Nakshatra": "Uttara Bhadrapada", 
-         "Lord": "Saturn", "Sublord": "Jupiter", "House": "10"},
-        {"Planet": "Rahu", "Sign": "Pisces", "Degree": "20° 00'", "Nakshatra": "Revati", 
-         "Lord": "Mercury", "Sublord": "Sun", "House": "10"},
-        {"Planet": "Ketu", "Sign": "Virgo", "Degree": "20° 00'", "Nakshatra": "Chitra", 
-         "Lord": "Mars", "Sublord": "Venus", "House": "4"}
-    ]
 
 # Function to generate timeline data based on market type
 def generate_timeline_data(symbol):
@@ -509,75 +851,6 @@ Based on the planetary positions and transit timeline for today, the following s
 - **Confirmation**: Always use technical indicators to confirm astrological signals.
 """
 
-# Function to create zodiac wheel visualization
-def create_zodiac_wheel(planetary_data):
-    # Create a blank image
-    img = Image.new('RGB', (600, 600), color='#0f3460')
-    draw = ImageDraw.Draw(img)
-    
-    # Define parameters
-    center_x, center_y = 300, 300
-    radius = 250
-    
-    # Draw zodiac circle
-    draw.ellipse((center_x - radius, center_y - radius, center_x + radius, center_y + radius), outline='#e94560', width=2)
-    
-    # Draw zodiac signs
-    signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", 
-            "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
-    
-    try:
-        font = ImageFont.truetype("arial.ttf", 12)
-    except:
-        font = ImageFont.load_default()
-    
-    for i, sign in enumerate(signs):
-        angle = i * 30  # 30 degrees per sign
-        rad = math.radians(angle)
-        x = center_x + (radius - 30) * math.cos(rad)
-        y = center_y + (radius - 30) * math.sin(rad)
-        draw.text((x, y), sign, fill='white', font=font)
-    
-    # Draw planets
-    planet_colors = {
-        "Sun": "#ffcc00", "Moon": "#cccccc", "Mercury": "#b0b0b0", 
-        "Venus": "#e39e1c", "Mars": "#ff0000", "Jupiter": "#ff9900", 
-        "Saturn": "#ffcc99", "Rahu": "#4b0082", "Ketu": "#8b008b"
-    }
-    
-    # Map signs to angles (simplified)
-    sign_angles = {
-        "Aries": 0, "Taurus": 30, "Gemini": 60, "Cancer": 90, 
-        "Leo": 120, "Virgo": 150, "Libra": 180, "Scorpio": 210, 
-        "Sagittarius": 240, "Capricorn": 270, "Aquarius": 300, "Pisces": 330
-    }
-    
-    for planet in planetary_data:
-        sign = planet["Sign"]
-        if sign in sign_angles:
-            angle = sign_angles[sign]
-            # Add some randomness for visualization
-            angle += np.random.randint(-10, 10)
-            rad = math.radians(angle)
-            
-            # Position planet
-            planet_radius = radius - 60
-            x = center_x + planet_radius * math.cos(rad)
-            y = center_y + planet_radius * math.sin(rad)
-            
-            # Draw planet
-            color = planet_colors.get(planet["Planet"], "#ffffff")
-            draw.ellipse((x-10, y-10, x+10, y+10), fill=color, outline='white')
-            
-            # Draw planet label
-            draw.text((x-15, y-25), planet["Planet"], fill='white', font=font)
-    
-    # Convert to base64 for display
-    buffered = io.BytesIO()
-    img.save(buffered, format="PNG")
-    img_str = base64.b64encode(buffered.getvalue()).decode()
-    return f"data:image/png;base64,{img_str}"
-
 # Generate report when button is clicked
 if generate_btn:
     # Update session state
@@ -588,12 +861,19 @@ if generate_btn:
     datetime_obj = datetime.datetime.combine(date, time_input)
     
     # Generate data
-    st.session_state.planetary_data = generate_planetary_data(datetime_obj, city)
+    st.session_state.planetary_data = generate_planetary_data(st.session_state.planetary_degrees)
     st.session_state.timeline_data = generate_timeline_data(symbol)
     st.session_state.trade_strategy = generate_trade_strategy(symbol, date)
     
     # Show success message
     st.sidebar.success("Report generated successfully!")
+
+# Generate planetary data if not already generated
+if not st.session_state.planetary_data:
+    st.session_state.planetary_data = generate_planetary_data(st.session_state.planetary_degrees)
+
+# Calculate aspects
+aspects = calculate_aspects(st.session_state.planetary_degrees)
 
 # Create tabs
 tab1, tab2, tab3 = st.tabs(["Transit Timeline", "Planetary Positions", "Trade Execution Strategy"])
@@ -684,10 +964,44 @@ with tab2:
         # Display table
         st.dataframe(df, use_container_width=True)
         
+        # Display aspects
+        st.subheader("Planetary Aspects")
+        aspects_df = pd.DataFrame(aspects)
+        if not aspects_df.empty:
+            st.dataframe(aspects_df, use_container_width=True)
+        else:
+            st.write("No significant aspects at this time.")
+        
         # Display zodiac wheel
         st.subheader("Planetary Positions Visualization")
-        zodiac_image = create_zodiac_wheel(st.session_state.planetary_data)
-        st.image(zodiac_image, width=600)
+        zodiac_image = create_zodiac_wheel_with_aspects(st.session_state.planetary_data, aspects)
+        st.image(zodiac_image, width=700)
+        
+        # Display aspect legend
+        st.markdown("""
+        <div class="aspect-legend">
+            <div class="aspect-item">
+                <div class="aspect-color" style="background-color: #ffcc00;"></div>
+                <span>Conjunction (0°)</span>
+            </div>
+            <div class="aspect-item">
+                <div class="aspect-color" style="background-color: #00ccff;"></div>
+                <span>Sextile (60°)</span>
+            </div>
+            <div class="aspect-item">
+                <div class="aspect-color" style="background-color: #ff3366;"></div>
+                <span>Square (90°)</span>
+            </div>
+            <div class="aspect-item">
+                <div class="aspect-color" style="background-color: #33cc33;"></div>
+                <span>Trine (120°)</span>
+            </div>
+            <div class="aspect-item">
+                <div class="aspect-color" style="background-color: #ff6633;"></div>
+                <span>Opposition (180°)</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     else:
         st.info("Generate a report to see planetary positions.")
 
@@ -706,4 +1020,5 @@ st.markdown('<div class="status-bar">© 2025 Planetary Trading Dashboard | Statu
 # Auto-refresh every minute
 if time.time() - st.session_state.last_update > 60:
     st.session_state.last_update = time.time()
+    update_planetary_degrees()
     st.rerun()
