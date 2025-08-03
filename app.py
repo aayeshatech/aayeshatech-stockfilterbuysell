@@ -103,6 +103,14 @@ st.markdown("""
         margin-bottom: 15px;
         font-weight: bold;
     }
+    .market-type {
+        background-color: #0f3460;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        display: inline-block;
+        margin-bottom: 10px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -119,6 +127,21 @@ if 'current_date' not in st.session_state:
     st.session_state.current_date = datetime.date(2025, 8, 4)
 if 'last_update' not in st.session_state:
     st.session_state.last_update = time.time()
+
+# Function to determine market type
+def get_market_type(symbol):
+    indian_symbols = ["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY"]
+    international_symbols = ["GOLD", "SILVER", "CRUDE", "BTC", "BITCOIN", "DOWJONES", "DOW", "DJIA", "SPX", "NASDAQ"]
+    
+    symbol_upper = symbol.upper()
+    
+    if symbol_upper in indian_symbols:
+        return "Indian"
+    elif symbol_upper in international_symbols:
+        return "International"
+    else:
+        # Default to International for unknown symbols
+        return "International"
 
 # Header
 st.markdown('<div class="main-header">INTRADAY PLANETARY TRANSIT TRADING DASHBOARD</div>', unsafe_allow_html=True)
@@ -167,45 +190,92 @@ def generate_planetary_data(datetime_obj, city):
          "Lord": "Mars", "Sublord": "Venus", "House": "4"}
     ]
 
-# Function to generate timeline data
+# Function to generate timeline data based on market type
 def generate_timeline_data(symbol):
-    # Mock timeline data for demonstration
-    return [
-        {"Time": "9:15 AM", "Event": "Moon in Jyeshtha (Scorpio)", 
-         "Influence": "Rahu aspects Moon (exact trine). Saturn-Rahu conjunction in Pisces creates volatility.", 
-         "Sentiment": "Bearish"},
-        {"Time": "10:15 AM", "Event": "Mercury Hora starts", 
-         "Influence": "Mercury in Leo (Magha) aspected by Rahu. Technical breakdown likely.", 
-         "Sentiment": "Bearish"},
-        {"Time": "11:15 AM", "Event": "Sun Hora starts", 
-         "Influence": "Sun in Cancer (Ashlesha) aspected by Rahu, but Jupiter's 7th aspect provides support.", 
-         "Sentiment": "Bullish"},
-        {"Time": "12:15 PM", "Event": "Venus Hora starts", 
-         "Influence": "Venus in Leo (Magha) under Rahu's 5th aspect. Profit-booking likely.", 
-         "Sentiment": "Volatile"},
-        {"Time": "1:15 PM", "Event": "Moon Hora starts", 
-         "Influence": "Moon debilitated in Scorpio. Ketu sublord intensifies reversals.", 
-         "Sentiment": "Bearish"},
-        {"Time": "2:15 PM", "Event": "Mars Hora starts", 
-         "Influence": "Mars in Cancer (Pushya) aspected by Rahu. Banking sector pressure.", 
-         "Sentiment": "Bearish"},
-        {"Time": "3:15 PM", "Event": "Jupiter Hora starts", 
-         "Influence": "Jupiter in Taurus (Krittika) aspected by Saturn. Mild recovery attempt.", 
-         "Sentiment": "Mildly Bullish"},
-        {"Time": "3:30 PM", "Event": "Market Close", 
-         "Influence": "Moon at 23° Scorpio. Rahu influence dominates.", 
-         "Sentiment": "Bearish Close"}
-    ]
+    market_type = get_market_type(symbol)
+    
+    if market_type == "Indian":
+        # Indian market timeline (9:15 AM to 3:30 PM)
+        return [
+            {"Time": "9:15 AM", "Event": "Market Open - Moon in Jyeshtha (Scorpio)", 
+             "Influence": "Rahu aspects Moon (exact trine). Saturn-Rahu conjunction creates volatility.", 
+             "Sentiment": "Bearish"},
+            {"Time": "10:15 AM", "Event": "Mercury Hora starts", 
+             "Influence": "Mercury in Leo (Magha) aspected by Rahu. Technical breakdown likely.", 
+             "Sentiment": "Bearish"},
+            {"Time": "11:15 AM", "Event": "Sun Hora starts", 
+             "Influence": "Sun in Cancer (Ashlesha) aspected by Rahu, but Jupiter's 7th aspect provides support.", 
+             "Sentiment": "Bullish"},
+            {"Time": "12:15 PM", "Event": "Venus Hora starts", 
+             "Influence": "Venus in Leo (Magha) under Rahu's 5th aspect. Profit-booking likely.", 
+             "Sentiment": "Volatile"},
+            {"Time": "1:15 PM", "Event": "Moon Hora starts", 
+             "Influence": "Moon debilitated in Scorpio. Ketu sublord intensifies reversals.", 
+             "Sentiment": "Bearish"},
+            {"Time": "2:15 PM", "Event": "Mars Hora starts", 
+             "Influence": "Mars in Cancer (Pushya) aspected by Rahu. Banking sector pressure.", 
+             "Sentiment": "Bearish"},
+            {"Time": "3:15 PM", "Event": "Jupiter Hora starts", 
+             "Influence": "Jupiter in Taurus (Krittika) aspected by Saturn. Mild recovery attempt.", 
+             "Sentiment": "Mildly Bullish"},
+            {"Time": "3:30 PM", "Event": "Market Close", 
+             "Influence": "Moon at 23° Scorpio. Rahu influence dominates.", 
+             "Sentiment": "Bearish Close"}
+        ]
+    else:
+        # International market timeline (5:00 AM to 11:55 PM)
+        return [
+            {"Time": "5:00 AM", "Event": "Market Open - Moon in Jyeshtha (Scorpio)", 
+             "Influence": "Rahu aspects Moon (exact trine). Saturn-Rahu conjunction creates volatility.", 
+             "Sentiment": "Bearish"},
+            {"Time": "7:00 AM", "Event": "Mercury Hora starts", 
+             "Influence": "Mercury in Leo (Magha) aspected by Rahu. Technical breakdown likely.", 
+             "Sentiment": "Bearish"},
+            {"Time": "9:00 AM", "Event": "Sun Hora starts", 
+             "Influence": "Sun in Cancer (Ashlesha) aspected by Rahu, but Jupiter's 7th aspect provides support.", 
+             "Sentiment": "Bullish"},
+            {"Time": "11:00 AM", "Event": "Venus Hora starts", 
+             "Influence": "Venus in Leo (Magha) under Rahu's 5th aspect. Profit-booking likely.", 
+             "Sentiment": "Volatile"},
+            {"Time": "1:00 PM", "Event": "Moon Hora starts", 
+             "Influence": "Moon debilitated in Scorpio. Ketu sublord intensifies reversals.", 
+             "Sentiment": "Bearish"},
+            {"Time": "3:00 PM", "Event": "Mars Hora starts", 
+             "Influence": "Mars in Cancer (Pushya) aspected by Rahu. Banking sector pressure.", 
+             "Sentiment": "Bearish"},
+            {"Time": "5:00 PM", "Event": "Jupiter Hora starts", 
+             "Influence": "Jupiter in Taurus (Krittika) aspected by Saturn. Mild recovery attempt.", 
+             "Sentiment": "Mildly Bullish"},
+            {"Time": "7:00 PM", "Event": "Saturn Hora starts", 
+             "Influence": "Saturn in Pisces (Uttara Bhadrapada) aspected by Jupiter. Consolidation phase.", 
+             "Sentiment": "Neutral"},
+            {"Time": "9:00 PM", "Event": "Venus Hora starts", 
+             "Influence": "Venus in Leo (Magha) under Ketu's aspect. Trend reversal possible.", 
+             "Sentiment": "Volatile"},
+            {"Time": "11:00 PM", "Event": "Moon Hora starts", 
+             "Influence": "Moon in Scorpio (Jyeshtha) aspected by Mars. Late session volatility.", 
+             "Sentiment": "Bearish"},
+            {"Time": "11:55 PM", "Event": "Market Close", 
+             "Influence": "Moon at 23° Scorpio. Rahu influence dominates.", 
+             "Sentiment": "Bearish Close"}
+        ]
 
 # Function to generate trade strategy
 def generate_trade_strategy(symbol, date):
     # Format date for display
     date_str = date.strftime("%d %B %Y")
+    market_type = get_market_type(symbol)
+    
+    if market_type == "Indian":
+        market_hours = "9:15 AM - 3:30 PM"
+    else:
+        market_hours = "5:00 AM - 11:55 PM"
     
     if symbol.upper() == "NIFTY":
         return f"""
 ### Nifty (Index) Trading Strategy
-<div class="report-header">Report for NIFTY on {date_str}</div>
+<div class="report-header">Report for NIFTY on {date_str} | Market Hours: {market_hours}</div>
+<div class="market-type">Indian Market</div>
 
 #### 1. Bearish Strategy (9:15 AM – 10:15 AM)
 - **Entry**: Short at open (9:15 AM) with stop-loss at 0.5% above entry.
@@ -230,7 +300,8 @@ def generate_trade_strategy(symbol, date):
     elif symbol.upper() == "BANKNIFTY":
         return f"""
 ### Bank Nifty (Banking Index) Trading Strategy
-<div class="report-header">Report for BANKNIFTY on {date_str}</div>
+<div class="report-header">Report for BANKNIFTY on {date_str} | Market Hours: {market_hours}</div>
+<div class="market-type">Indian Market</div>
 
 #### 1. Bearish Open (9:15 AM – 10:15 AM)
 - **Entry**: Short at open.
@@ -254,47 +325,126 @@ def generate_trade_strategy(symbol, date):
     elif symbol.upper() in ["GOLD", "XAUUSD"]:
         return f"""
 ### Gold Trading Strategy
-<div class="report-header">Report for GOLD on {date_str}</div>
+<div class="report-header">Report for GOLD on {date_str} | Market Hours: {market_hours}</div>
+<div class="market-type">International Market</div>
 
-#### 1. Morning Reversal (9:15 AM – 10:30 AM)
-- **Entry**: Long on dip below 9:30 AM low.
-- **Target**: 0.5% rise by 10:30 AM.
+#### 1. Early Morning Reversal (5:00 AM – 7:00 AM)
+- **Entry**: Long on dip below 5:30 AM low.
+- **Target**: 0.5% rise by 7:00 AM.
 - **Rationale**: Jupiter's aspect on gold-friendly signs supports early buying.
 
-#### 2. Mid-day Consolidation (11:00 AM – 1:00 PM)
+#### 2. Morning Session (9:00 AM – 11:00 AM)
 - **Action**: Range-bound trading expected.
 - **Strategy**: Buy at support, sell at resistance.
 - **Rationale**: Venus influences create sideways movement.
 
-#### 3. Afternoon Breakout (1:30 PM – 2:30 PM)
-- **Entry**: Breakout above 1:15 PM high.
-- **Target**: 0.7% rise by 2:30 PM.
+#### 3. Afternoon Breakout (1:00 PM – 3:00 PM)
+- **Entry**: Breakout above 1:00 PM high.
+- **Target**: 0.7% rise by 3:00 PM.
 - **Rationale**: Sun hora strengthens precious metals.
+
+#### 4. Evening Session (7:00 PM – 9:00 PM)
+- **Entry**: Follow the 7:00 PM reversal direction.
+- **Target**: 0.6% move by 9:00 PM.
+- **Rationale**: Saturn hora creates trend continuation.
 
 ### Risk Management
 - **Stop-Loss**: 0.3% for intraday trades.
 - **Position Size**: Limit to 15% of trading capital.
 - **Focus**: USD index movements alongside astro signals.
 """
+    elif symbol.upper() in ["SILVER", "XAGUSD"]:
+        return f"""
+### Silver Trading Strategy
+<div class="report-header">Report for SILVER on {date_str} | Market Hours: {market_hours}</div>
+<div class="market-type">International Market</div>
+
+#### 1. Early Morning Volatility (5:00 AM – 7:00 AM)
+- **Entry**: Short on rejection at 5:30 AM high.
+- **Target**: 0.8% decline by 7:00 AM.
+- **Rationale**: Rahu influence creates sharp reversals.
+
+#### 2. Mid-morning Recovery (9:00 AM – 11:00 AM)
+- **Entry**: Long on bounce from 9:30 AM low.
+- **Target**: 0.7% rise by 11:00 AM.
+- **Rationale**: Mercury hora supports industrial metals.
+
+#### 3. Afternoon Trend (1:00 PM – 3:00 PM)
+- **Entry**: Follow the 1:00 PM breakout direction.
+- **Target**: 0.9% move by 3:00 PM.
+- **Rationale**: Sun hora strengthens precious metals.
+
+#### 4. Evening Session (7:00 PM – 9:00 PM)
+- **Entry**: Short on rejection at 7:30 PM high.
+- **Target**: 0.6% decline by 9:00 PM.
+- **Rationale**: Saturn hora creates selling pressure.
+
+### Risk Management
+- **Stop-Loss**: 0.4% for intraday trades.
+- **Position Size**: Limit to 15% of trading capital.
+- **Focus**: Gold price movements alongside astro signals.
+"""
+    elif symbol.upper() in ["CRUDE", "CL", "WTI"]:
+        return f"""
+### Crude Oil Trading Strategy
+<div class="report-header">Report for CRUDE on {date_str} | Market Hours: {market_hours}</div>
+<div class="market-type">International Market</div>
+
+#### 1. Early Morning Breakout (5:00 AM – 7:00 AM)
+- **Entry**: Long on breakout above 5:30 AM high.
+- **Target**: 1.0% rise by 7:00 AM.
+- **Rationale**: Mars hora supports energy commodities.
+
+#### 2. Mid-morning Reversal (9:00 AM – 11:00 AM)
+- **Entry**: Short on rejection at 9:30 AM high.
+- **Target**: 0.8% decline by 11:00 AM.
+- **Rationale**: Mercury hora creates profit-taking.
+
+#### 3. Afternoon Volatility (1:00 PM – 3:00 PM)
+- **Entry**: Follow the 1:00 PM breakout direction.
+- **Target**: 1.2% move by 3:00 PM.
+- **Rationale**: Sun hora influences energy markets.
+
+#### 4. Evening Session (7:00 PM – 9:00 PM)
+- **Entry**: Short on breakdown below 7:30 PM low.
+- **Target**: 0.9% decline by 9:00 PM.
+- **Rationale**: Saturn hora creates selling pressure.
+
+### Risk Management
+- **Stop-Loss**: 0.5% for intraday trades.
+- **Position Size**: Limit to 15% of trading capital.
+- **Focus**: Inventory reports alongside astro signals.
+"""
     elif symbol.upper() in ["BTC", "BITCOIN"]:
         return f"""
 ### Bitcoin Trading Strategy
-<div class="report-header">Report for BITCOIN on {date_str}</div>
+<div class="report-header">Report for BITCOIN on {date_str} | Market Hours: {market_hours}</div>
+<div class="market-type">International Market</div>
 
-#### 1. Morning Volatility (9:15 AM – 10:15 AM)
-- **Entry**: Short on rejection at 9:30 AM high.
-- **Target**: 1.5% decline by 10:15 AM.
+#### 1. Early Morning Volatility (5:00 AM – 7:00 AM)
+- **Entry**: Short on rejection at 5:30 AM high.
+- **Target**: 1.5% decline by 7:00 AM.
 - **Rationale**: Rahu influence creates sharp reversals.
 
-#### 2. Mid-day Recovery (11:00 AM – 12:30 PM)
-- **Entry**: Long on bounce from 11:00 AM low.
-- **Target**: 1.2% rise by 12:30 PM.
+#### 2. Mid-morning Recovery (9:00 AM – 11:00 AM)
+- **Entry**: Long on bounce from 9:30 AM low.
+- **Target**: 1.2% rise by 11:00 AM.
 - **Rationale**: Mercury hora supports tech/crypto assets.
 
-#### 3. Afternoon Trend (1:15 PM – 3:00 PM)
-- **Entry**: Follow the 1:15 PM breakout direction.
+#### 3. Afternoon Trend (1:00 PM – 3:00 PM)
+- **Entry**: Follow the 1:00 PM breakout direction.
 - **Target**: 1.0% move by 3:00 PM.
 - **Rationale**: Ketu influence creates sustained trends.
+
+#### 4. Evening Session (7:00 PM – 9:00 PM)
+- **Entry**: Long on breakout above 7:30 PM high.
+- **Target**: 1.3% rise by 9:00 PM.
+- **Rationale**: Venus hora supports speculative assets.
+
+#### 5. Late Session (11:00 PM – 11:55 PM)
+- **Entry**: Short on rejection at 11:30 PM high.
+- **Target**: 0.8% decline by close.
+- **Rationale**: Moon hora creates late session volatility.
 
 ### Risk Management
 - **Stop-Loss**: 0.8% for intraday trades.
@@ -304,22 +454,28 @@ def generate_trade_strategy(symbol, date):
     elif symbol.upper() in ["DOWJONES", "DOW", "DJIA"]:
         return f"""
 ### Dow Jones Trading Strategy
-<div class="report-header">Report for DOWJONES on {date_str}</div>
+<div class="report-header">Report for DOWJONES on {date_str} | Market Hours: {market_hours}</div>
+<div class="market-type">International Market</div>
 
-#### 1. Opening Drive (9:15 AM – 10:30 AM)
+#### 1. Early Morning Drive (5:00 AM – 7:00 AM)
 - **Entry**: Short at open with 0.3% stop-loss.
-- **Target**: 0.6% decline by 10:30 AM.
+- **Target**: 0.6% decline by 7:00 AM.
 - **Rationale**: Saturn-Rahu conjunction pressures equities.
 
-#### 2. Mid-day Reversal (11:00 AM – 12:30 PM)
-- **Entry**: Long on bounce from 11:00 AM low.
-- **Target**: 0.5% rise by 12:30 PM.
+#### 2. Mid-morning Reversal (9:00 AM – 11:00 AM)
+- **Entry**: Long on bounce from 9:30 AM low.
+- **Target**: 0.5% rise by 11:00 AM.
 - **Rationale**: Jupiter's aspect provides temporary support.
 
-#### 3. Afternoon Trend (1:15 PM – 3:00 PM)
-- **Entry**: Follow the 1:15 PM breakout direction.
+#### 3. Afternoon Trend (1:00 PM – 3:00 PM)
+- **Entry**: Follow the 1:00 PM breakout direction.
 - **Target**: 0.4% move by 3:00 PM.
 - **Rationale**: Sun hora influences market direction.
+
+#### 4. Evening Session (7:00 PM – 9:00 PM)
+- **Entry**: Short on rejection at 7:30 PM high.
+- **Target**: 0.5% decline by 9:00 PM.
+- **Rationale**: Saturn hora creates selling pressure.
 
 ### Risk Management
 - **Stop-Loss**: 0.3% for intraday trades.
@@ -329,18 +485,23 @@ def generate_trade_strategy(symbol, date):
     else:
         return f"""
 ### {symbol} Trading Strategy
-<div class="report-header">Report for {symbol} on {date_str}</div>
+<div class="report-header">Report for {symbol} on {date_str} | Market Hours: {market_hours}</div>
+<div class="market-type">{market_type} Market</div>
 
 #### General Approach
 Based on the planetary positions and transit timeline for today, the following strategy is recommended for {symbol}:
 
-1. **Morning Session (9:15 AM - 12:00 PM)**: 
+1. **Morning Session (5:00 AM - 12:00 PM)**: 
    - Bearish sentiment dominates in the first hour. Consider short positions with tight stop-loss.
-   - Mid-morning may see a brief bullish reversal around 11:15 AM.
+   - Mid-morning may see a brief bullish reversal around 9:00 AM.
 
-2. **Afternoon Session (12:00 PM - 3:30 PM)**:
-   - Volatility expected during Moon hora (1:15 PM - 2:15 PM). Avoid new positions.
-   - Late session may see mild recovery attempts.
+2. **Afternoon Session (12:00 PM - 7:00 PM)**:
+   - Volatility expected during Moon hora (1:00 PM - 2:00 PM). Avoid new positions.
+   - Late afternoon may see trend development.
+
+3. **Evening Session (7:00 PM - 11:55 PM)**:
+   - Saturn hora influences may create trend reversals.
+   - Late session volatility expected during Moon hora.
 
 ### Risk Management
 - **Stop-Loss**: 0.5% for intraday trades.
@@ -442,6 +603,10 @@ with tab1:
     st.header("Critical Transit Timeline")
     
     if st.session_state.timeline_data:
+        # Display market type
+        market_type = get_market_type(st.session_state.current_symbol)
+        st.markdown(f'<div class="market-type">{market_type} Market</div>', unsafe_allow_html=True)
+        
         # Create DataFrame
         df = pd.DataFrame(st.session_state.timeline_data)
         
