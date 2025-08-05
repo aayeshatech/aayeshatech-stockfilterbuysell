@@ -15,7 +15,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Simple but effective CSS
+# Enhanced CSS for better alignment
 st.markdown("""
 <style>
     .main-title {
@@ -35,13 +35,14 @@ st.markdown("""
     
     .sentiment-card {
         background: linear-gradient(135deg, #81c784, #a5d6a7);
-        padding: 20px;
+        padding: 25px;
         border-radius: 15px;
         text-align: center;
         margin: 20px 0;
         color: #2e7d32;
-        font-size: 1.5rem;
+        font-size: 1.8rem;
         font-weight: bold;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
     
     .sentiment-bullish {
@@ -59,94 +60,147 @@ st.markdown("""
         color: white;
     }
     
-    .timeline-card {
-        background: rgba(255,255,255,0.1);
-        border: 1px solid #e94560;
-        border-radius: 10px;
-        padding: 15px;
-        margin: 10px 0;
+    .timeline-container {
+        background: rgba(255,255,255,0.05);
+        border: 2px solid #e94560;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 15px 0;
         color: white;
     }
     
-    .current-hora {
+    .timeline-current {
         background: linear-gradient(135deg, #e94560, #f06292) !important;
-        border: 2px solid white !important;
+        border: 3px solid #ffffff !important;
         animation: glow 2s infinite;
+        box-shadow: 0 0 20px rgba(233, 69, 96, 0.6);
     }
     
     @keyframes glow {
-        0% { box-shadow: 0 0 5px rgba(233, 69, 96, 0.5); }
-        50% { box-shadow: 0 0 20px rgba(233, 69, 96, 0.8); }
-        100% { box-shadow: 0 0 5px rgba(233, 69, 96, 0.5); }
+        0% { box-shadow: 0 0 20px rgba(233, 69, 96, 0.6); }
+        50% { box-shadow: 0 0 30px rgba(233, 69, 96, 0.9); }
+        100% { box-shadow: 0 0 20px rgba(233, 69, 96, 0.6); }
     }
     
-    .planet-card {
+    .timeline-bullish {
+        border-color: #4caf50;
+        background: rgba(76, 175, 80, 0.1);
+    }
+    
+    .timeline-bearish {
+        border-color: #f44336;
+        background: rgba(244, 67, 54, 0.1);
+    }
+    
+    .timeline-neutral {
+        border-color: #ff9800;
+        background: rgba(255, 152, 0, 0.1);
+    }
+    
+    .planet-container {
         background: rgba(255,255,255,0.08);
-        border-left: 4px solid #e94560;
-        padding: 15px;
-        margin: 10px 0;
-        border-radius: 8px;
+        border-left: 5px solid #e94560;
+        padding: 20px;
+        margin: 12px 0;
+        border-radius: 10px;
         color: white;
     }
     
-    .aspect-card {
+    .aspect-container {
         background: linear-gradient(90deg, #1a237e, #283593);
         color: white;
-        padding: 12px;
-        border-radius: 8px;
-        margin: 8px 0;
-        border-left: 4px solid #e94560;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 10px 0;
+        border-left: 5px solid #e94560;
     }
     
-    .strategy-card {
+    .strategy-section {
         background: linear-gradient(135deg, #1a237e, #3949ab);
         color: white;
-        padding: 25px;
+        padding: 30px;
         border-radius: 15px;
         margin: 20px 0;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.3);
     }
     
-    .entry-signal {
-        background: rgba(76, 175, 80, 0.2);
-        border: 1px solid #4caf50;
-        border-radius: 8px;
-        padding: 15px;
-        margin: 10px 0;
-        color: white;
-    }
-    
-    .exit-signal {
-        background: rgba(244, 67, 54, 0.2);
-        border: 1px solid #f44336;
-        border-radius: 8px;
-        padding: 15px;
-        margin: 10px 0;
-        color: white;
-    }
-    
-    .forecast-card {
-        background: #f8f9fa;
-        border: 1px solid #dee2e6;
+    .entry-opportunity {
+        background: rgba(76, 175, 80, 0.15);
+        border: 2px solid #4caf50;
         border-radius: 10px;
         padding: 20px;
         margin: 15px 0;
+        color: white;
+    }
+    
+    .exit-warning {
+        background: rgba(244, 67, 54, 0.15);
+        border: 2px solid #f44336;
+        border-radius: 10px;
+        padding: 20px;
+        margin: 15px 0;
+        color: white;
+    }
+    
+    .forecast-container {
+        background: #f8f9fa;
+        border: 2px solid #dee2e6;
+        border-radius: 12px;
+        padding: 25px;
+        margin: 18px 0;
         color: #333;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     
     .forecast-today {
-        border: 3px solid #e94560;
-        background: #fff3f4;
+        border: 4px solid #e94560;
+        background: linear-gradient(135deg, #fff3f4, #fce4ec);
+        animation: pulse-today 3s infinite;
+    }
+    
+    @keyframes pulse-today {
+        0% { border-color: #e94560; }
+        50% { border-color: #f06292; }
+        100% { border-color: #e94560; }
     }
     
     .live-time {
-        font-family: monospace;
-        font-size: 1.2rem;
+        font-family: 'Courier New', monospace;
+        font-size: 1.3rem;
+        font-weight: bold;
         color: #e94560;
         text-align: center;
         background: rgba(0,0,0,0.2);
-        padding: 10px;
-        border-radius: 8px;
-        margin: 10px 0;
+        padding: 15px;
+        border-radius: 10px;
+        margin: 15px 0;
+        border: 2px solid #e94560;
+    }
+    
+    .current-hora-alert {
+        background: linear-gradient(135deg, #e94560, #f06292);
+        color: white;
+        padding: 25px;
+        border-radius: 15px;
+        text-align: center;
+        margin: 20px 0;
+        font-size: 1.2rem;
+        box-shadow: 0 6px 20px rgba(233, 69, 96, 0.4);
+        animation: pulse-alert 2s infinite;
+    }
+    
+    @keyframes pulse-alert {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+    
+    .data-table {
+        background: rgba(255,255,255,0.95);
+        border-radius: 10px;
+        padding: 15px;
+        margin: 15px 0;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -160,6 +214,12 @@ if 'current_symbol' not in st.session_state:
     st.session_state.current_symbol = "NIFTY"
 if 'planetary_degrees' not in st.session_state:
     st.session_state.planetary_degrees = {}
+if 'timeline_data' not in st.session_state:
+    st.session_state.timeline_data = []
+if 'aspects' not in st.session_state:
+    st.session_state.aspects = []
+if 'sentiment_data' not in st.session_state:
+    st.session_state.sentiment_data = {}
 
 # Enhanced planetary calculations
 def calculate_dynamic_planetary_positions(date):
@@ -455,26 +515,8 @@ def generate_dynamic_timeline(symbol, date, planetary_degrees, aspects):
     
     return timeline_data
 
-# Header
-st.markdown('<div class="main-title">🌟 DYNAMIC PLANETARY TRADING DASHBOARD</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">Real-time Astro-Financial Intelligence System</div>', unsafe_allow_html=True)
-
-# Live time display
-current_time = datetime.datetime.now()
-market_status = "OPEN" if 9 <= current_time.hour <= 15 and current_time.weekday() < 5 else "CLOSED"
-st.markdown(f'<div class="live-time">🕐 Live Time: {current_time.strftime("%Y-%m-%d %H:%M:%S")} | Market Status: {market_status}</div>', unsafe_allow_html=True)
-
-# Sidebar
-st.sidebar.header("📊 Trading Parameters")
-date = st.sidebar.date_input("📅 Select Date", value=st.session_state.current_date)
-symbol = st.sidebar.text_input("💹 Trading Symbol", value=st.session_state.current_symbol)
-city = st.sidebar.text_input("🌍 Location", value="Mumbai")
-
-# Auto-update when inputs change
-if date != st.session_state.current_date or symbol != st.session_state.current_symbol:
-    st.session_state.current_date = date
-    st.session_state.current_symbol = symbol
-    
+def update_all_data(date, symbol):
+    """Update all data when date or symbol changes"""
     # Calculate new planetary positions
     st.session_state.planetary_degrees = calculate_dynamic_planetary_positions(date)
     
@@ -494,37 +536,53 @@ if date != st.session_state.current_date or symbol != st.session_state.current_s
         })
     
     st.session_state.planetary_data = planetary_data
-
-# Generate data if not exists
-if not st.session_state.planetary_data:
-    st.session_state.planetary_degrees = calculate_dynamic_planetary_positions(date)
-    planetary_data = []
-    for planet, degree in st.session_state.planetary_degrees.items():
-        sign = get_sign_from_degree(degree)
-        nakshatra = get_nakshatra_from_degree(degree)
-        strength = get_planet_strength(planet, sign)
-        
-        planetary_data.append({
-            "Planet": planet,
-            "Degree": f"{int(degree)}°{int((degree % 1) * 60)}'",
-            "Sign": sign,
-            "Nakshatra": nakshatra,
-            "Strength": strength
-        })
     
-    st.session_state.planetary_data = planetary_data
+    # Calculate aspects
+    st.session_state.aspects = calculate_dynamic_aspects(st.session_state.planetary_degrees)
+    
+    # Generate timeline
+    st.session_state.timeline_data = generate_dynamic_timeline(symbol, date, st.session_state.planetary_degrees, st.session_state.aspects)
+    
+    # Calculate sentiment
+    sentiment, sentiment_class, sentiment_score, sentiment_factors = calculate_market_sentiment_dynamic(
+        st.session_state.planetary_data, st.session_state.aspects, date
+    )
+    
+    st.session_state.sentiment_data = {
+        "sentiment": sentiment,
+        "sentiment_class": sentiment_class,
+        "sentiment_score": sentiment_score,
+        "sentiment_factors": sentiment_factors
+    }
 
-# Calculate aspects and timeline
-aspects = calculate_dynamic_aspects(st.session_state.planetary_degrees)
-timeline_data = generate_dynamic_timeline(symbol, date, st.session_state.planetary_degrees, aspects)
+# Header
+st.markdown('<div class="main-title">🌟 DYNAMIC PLANETARY TRADING DASHBOARD</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">Real-time Astro-Financial Intelligence System</div>', unsafe_allow_html=True)
 
-# Calculate market sentiment
-sentiment, sentiment_class, sentiment_score, sentiment_factors = calculate_market_sentiment_dynamic(
-    st.session_state.planetary_data, aspects, date
-)
+# Live time display
+current_time = datetime.datetime.now()
+market_status = "OPEN" if 9 <= current_time.hour <= 15 and current_time.weekday() < 5 else "CLOSED"
+st.markdown(f'<div class="live-time">🕐 Live Time: {current_time.strftime("%Y-%m-%d %H:%M:%S")} | Market Status: {market_status}</div>', unsafe_allow_html=True)
 
-# Display market sentiment using Streamlit components
-st.markdown(f'<div class="sentiment-card {sentiment_class}">{sentiment}<br><small>Score: {sentiment_score:.1f}</small></div>', unsafe_allow_html=True)
+# Sidebar
+st.sidebar.header("📊 Trading Parameters")
+date = st.sidebar.date_input("📅 Select Date", value=st.session_state.current_date)
+symbol = st.sidebar.text_input("💹 Trading Symbol", value=st.session_state.current_symbol)
+city = st.sidebar.text_input("🌍 Location", value="Mumbai")
+
+# Auto-update when inputs change
+if date != st.session_state.current_date or symbol != st.session_state.current_symbol:
+    st.session_state.current_date = date
+    st.session_state.current_symbol = symbol
+    update_all_data(date, symbol)
+
+# Initialize data if not exists
+if not st.session_state.planetary_data:
+    update_all_data(date, symbol)
+
+# Display market sentiment
+sentiment_data = st.session_state.sentiment_data
+st.markdown(f'<div class="sentiment-card {sentiment_data["sentiment_class"]}">{sentiment_data["sentiment"]}<br><small>Score: {sentiment_data["sentiment_score"]:.1f}</small></div>', unsafe_allow_html=True)
 
 # Create tabs
 tab1, tab2, tab3, tab4 = st.tabs(["🕐 Transit Timeline", "🪐 Planetary Positions", "⚡ Strategy", "🔮 Forecast"])
@@ -536,7 +594,7 @@ with tab1:
     now = datetime.datetime.now()
     current_hora = None
     
-    for i, item in enumerate(timeline_data):
+    for i, item in enumerate(st.session_state.timeline_data):
         time_str = item["Time"]
         sentiment_item = item["Sentiment"]
         hora_lord = item["HoraLord"]
@@ -546,8 +604,8 @@ with tab1:
         try:
             item_time = datetime.datetime.strptime(time_str, "%I:%M %p").time()
             is_current = False
-            if i < len(timeline_data) - 1:
-                next_time = datetime.datetime.strptime(timeline_data[i+1]["Time"], "%I:%M %p").time()
+            if i < len(st.session_state.timeline_data) - 1:
+                next_time = datetime.datetime.strptime(st.session_state.timeline_data[i+1]["Time"], "%I:%M %p").time()
                 is_current = item_time <= now.time() < next_time
             else:
                 is_current = item_time <= now.time()
@@ -557,94 +615,212 @@ with tab1:
         if is_current:
             current_hora = item
         
-        # Create timeline item using columns
-        col1, col2 = st.columns([3, 1])
+        # Create timeline item with proper alignment
+        col1, col2, col3 = st.columns([6, 2, 1])
         
         with col1:
+            # Determine timeline class
+            timeline_class = "timeline-container"
             if is_current:
-                st.markdown(f'<div class="timeline-card current-hora">🔥 <strong>{time_str} - {hora_lord} Hora (CURRENT)</strong><br>{influence}</div>', unsafe_allow_html=True)
+                timeline_class += " timeline-current"
+            elif sentiment_item in ["Very Bullish", "Bullish"]:
+                timeline_class += " timeline-bullish"
+            elif sentiment_item in ["Very Bearish", "Bearish"]:
+                timeline_class += " timeline-bearish"
             else:
-                st.markdown(f'<div class="timeline-card"><strong>{time_str} - {hora_lord} Hora</strong><br>{influence}</div>', unsafe_allow_html=True)
+                timeline_class += " timeline-neutral"
+            
+            timeline_content = f"""
+            <div class="{timeline_class}">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h4 style="margin: 0; color: white;">⏰ {time_str} - {hora_lord} Hora</h4>
+                    {"<span style='color: #ffff00; font-weight: bold;'>🔥 CURRENT</span>" if is_current else ""}
+                </div>
+                <div style="color: rgba(255,255,255,0.9); font-size: 0.95rem;">
+                    <strong>Influence:</strong> {influence}
+                </div>
+                <div style="margin-top: 10px; color: rgba(255,255,255,0.8); font-size: 0.9rem;">
+                    <strong>Score:</strong> {item['SentimentScore']:.1f}
+                </div>
+            </div>
+            """
+            st.markdown(timeline_content, unsafe_allow_html=True)
         
         with col2:
-            # Sentiment badge
-            if sentiment_item == "Very Bullish" or sentiment_item == "Bullish":
-                st.success(sentiment_item)
-            elif sentiment_item == "Very Bearish" or sentiment_item == "Bearish":
-                st.error(sentiment_item)
+            # Sentiment indicator
+            if sentiment_item == "Very Bullish":
+                st.success(f"🚀 {sentiment_item}")
+            elif sentiment_item == "Bullish":
+                st.success(f"📈 {sentiment_item}")
+            elif sentiment_item == "Very Bearish":
+                st.error(f"📉 {sentiment_item}")
+            elif sentiment_item == "Bearish":
+                st.error(f"🔻 {sentiment_item}")
             else:
-                st.warning(sentiment_item)
+                st.warning(f"⚖️ {sentiment_item}")
+        
+        with col3:
+            # Action recommendation
+            if item['SentimentScore'] > 1:
+                st.success("BUY")
+            elif item['SentimentScore'] < -1:
+                st.error("SELL")
+            else:
+                st.warning("HOLD")
     
     # Current hora alert
     if current_hora:
-        st.success(f"🔥 CURRENT HORA: {current_hora['HoraLord']} - {current_hora['Sentiment']} (Score: {current_hora['SentimentScore']:.1f})")
-        
         action_text = "LONG POSITIONS" if current_hora['SentimentScore'] > 0 else "SHORT POSITIONS" if current_hora['SentimentScore'] < -1 else "CAUTIOUS TRADING"
-        st.info(f"**Recommended Action:** {action_text}")
+        st.markdown(f'''
+        <div class="current-hora-alert">
+            <h2>🔥 CURRENT HORA ACTIVE</h2>
+            <h3>{current_hora['HoraLord']} Hora - {current_hora['Sentiment']}</h3>
+            <p><strong>Recommended Action:</strong> {action_text}</p>
+            <p><strong>Sentiment Score:</strong> {current_hora['SentimentScore']:.1f}</p>
+        </div>
+        ''', unsafe_allow_html=True)
 
 with tab2:
     st.header("🪐 Planetary Positions & Strengths")
     
-    # Display planetary data in a clean format
-    for planet in st.session_state.planetary_data:
-        col1, col2 = st.columns([3, 1])
-        
-        with col1:
-            st.markdown(f'<div class="planet-card"><strong>{planet["Planet"]}</strong> - {planet["Degree"]} in <strong>{planet["Sign"]}</strong> ({planet["Nakshatra"]})</div>', unsafe_allow_html=True)
-        
-        with col2:
-            strength = planet["Strength"]
-            if strength == "Exalted":
-                st.success(strength)
-            elif strength == "Own Sign":
-                st.info(strength)
-            elif strength == "Debilitated":
-                st.error(strength)
-            else:
-                st.warning(strength)
+    # Display planetary data in organized layout
+    col1, col2 = st.columns(2)
     
-    # Display aspects
+    with col1:
+        st.subheader("🌟 Planetary Positions")
+        for i, planet in enumerate(st.session_state.planetary_data):
+            if i % 2 == 0:  # Show every other planet in left column
+                planet_content = f"""
+                <div class="planet-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h4 style="margin: 0; color: white;">{planet["Planet"]}</h4>
+                            <p style="margin: 5px 0; color: #e94560; font-weight: bold;">{planet["Degree"]} in {planet["Sign"]}</p>
+                            <p style="margin: 0; color: rgba(255,255,255,0.8); font-size: 0.9rem;">{planet["Nakshatra"]}</p>
+                        </div>
+                    </div>
+                </div>
+                """
+                st.markdown(planet_content, unsafe_allow_html=True)
+                
+                # Strength indicator
+                strength = planet["Strength"]
+                if strength == "Exalted":
+                    st.success(f"✨ {strength}")
+                elif strength == "Own Sign":
+                    st.info(f"🏠 {strength}")
+                elif strength == "Debilitated":
+                    st.error(f"⚠️ {strength}")
+                else:
+                    st.warning(f"⚖️ {strength}")
+    
+    with col2:
+        st.subheader("🌟 Planetary Positions")
+        for i, planet in enumerate(st.session_state.planetary_data):
+            if i % 2 == 1:  # Show every other planet in right column
+                planet_content = f"""
+                <div class="planet-container">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h4 style="margin: 0; color: white;">{planet["Planet"]}</h4>
+                            <p style="margin: 5px 0; color: #e94560; font-weight: bold;">{planet["Degree"]} in {planet["Sign"]}</p>
+                            <p style="margin: 0; color: rgba(255,255,255,0.8); font-size: 0.9rem;">{planet["Nakshatra"]}</p>
+                        </div>
+                    </div>
+                </div>
+                """
+                st.markdown(planet_content, unsafe_allow_html=True)
+                
+                # Strength indicator
+                strength = planet["Strength"]
+                if strength == "Exalted":
+                    st.success(f"✨ {strength}")
+                elif strength == "Own Sign":
+                    st.info(f"🏠 {strength}")
+                elif strength == "Debilitated":
+                    st.error(f"⚠️ {strength}")
+                else:
+                    st.warning(f"⚖️ {strength}")
+    
+    # Display aspects in organized layout
     st.subheader("⚡ Active Planetary Aspects")
     
-    if aspects:
-        for aspect in aspects[:10]:  # Show top 10
-            st.markdown(f'<div class="aspect-card"><strong>{aspect["planet1"]} {aspect["type"]} {aspect["planet2"]}</strong> - {aspect["strength"]} (Orb: {aspect["orb"]:.1f}°)</div>', unsafe_allow_html=True)
+    if st.session_state.aspects:
+        # Create aspects table
+        aspects_data = []
+        for aspect in st.session_state.aspects[:12]:  # Show top 12
+            aspects_data.append({
+                "Aspect": f"{aspect['planet1']} {aspect['type']} {aspect['planet2']}",
+                "Strength": aspect['strength'],
+                "Orb": f"{aspect['orb']:.1f}°",
+                "Angle": f"{aspect['angle']:.1f}°"
+            })
+        
+        aspects_df = pd.DataFrame(aspects_data)
+        st.markdown('<div class="data-table">', unsafe_allow_html=True)
+        st.dataframe(aspects_df, use_container_width=True)
+        st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.info("No significant aspects found for this date.")
 
 with tab3:
     st.header("⚡ Dynamic Trading Strategy")
     
-    # Strategy content using Streamlit components
+    # Strategy content
     date_str = date.strftime("%d %B %Y (%A)")
+    sentiment_data = st.session_state.sentiment_data
     
-    st.markdown(f'<div class="strategy-card"><h2>🎯 Strategy for {symbol} on {date_str}</h2></div>', unsafe_allow_html=True)
+    st.markdown(f'''
+    <div class="strategy-section">
+        <h2>🎯 Trading Strategy for {symbol} on {date_str}</h2>
+        <div style="text-align: center; margin: 20px 0;">
+            <div class="sentiment-card {sentiment_data["sentiment_class"]}">
+                Market Sentiment: {sentiment_data["sentiment"]}<br>
+                <small>Score: {sentiment_data["sentiment_score"]:.1f}</small>
+            </div>
+        </div>
+    </div>
+    ''', unsafe_allow_html=True)
     
     # Sentiment breakdown
-    st.subheader("📊 Sentiment Analysis Breakdown")
-    for factor in sentiment_factors[:8]:
-        st.write(f"• {factor}")
+    col1, col2 = st.columns(2)
     
-    # Trading windows
-    st.subheader("⏰ Hora-based Trading Windows")
+    with col1:
+        st.subheader("📊 Sentiment Analysis Breakdown")
+        for factor in sentiment_data["sentiment_factors"][:8]:
+            st.write(f"• {factor}")
     
-    # Find best entries and avoid periods
-    best_entries = []
-    avoid_periods = []
-    
-    for timeline_item in timeline_data:
-        hora_score = timeline_item["SentimentScore"]
-        if hora_score >= 1.5:
-            best_entries.append(timeline_item)
-        elif hora_score <= -1.5:
-            avoid_periods.append(timeline_item)
+    with col2:
+        st.subheader("⏰ Hora-based Trading Windows")
+        
+        # Find best entries and avoid periods
+        best_entries = []
+        avoid_periods = []
+        
+        for timeline_item in st.session_state.timeline_data:
+            hora_score = timeline_item["SentimentScore"]
+            if hora_score >= 1.5:
+                best_entries.append(timeline_item)
+            elif hora_score <= -1.5:
+                avoid_periods.append(timeline_item)
+        
+        st.write(f"**Best Entry Opportunities:** {len(best_entries)}")
+        st.write(f"**Periods to Avoid:** {len(avoid_periods)}")
     
     # Display best entries
     if best_entries:
         st.subheader("🚀 Best Entry Opportunities")
         for entry in best_entries[:3]:
             target = f"{1.2 + entry['SentimentScore'] * 0.3:.1f}%"
-            st.markdown(f'<div class="entry-signal"><strong>{entry["Time"]} - {entry["HoraLord"]} Hora</strong><br>Action: Strong Buy | Target: {target} | Stop: 0.5%<br>Reason: {entry["Influence"][:100]}...</div>', unsafe_allow_html=True)
+            entry_content = f"""
+            <div class="entry-opportunity">
+                <h4>⏰ {entry["Time"]} - {entry["HoraLord"]} Hora</h4>
+                <p><strong>Action:</strong> Strong Buy | <strong>Target:</strong> {target} | <strong>Stop:</strong> 0.5%</p>
+                <p><strong>Reason:</strong> {entry["Influence"][:120]}...</p>
+                <p><strong>Score:</strong> {entry['SentimentScore']:.1f}</p>
+            </div>
+            """
+            st.markdown(entry_content, unsafe_allow_html=True)
     else:
         st.info("No strong bullish signals detected today.")
     
@@ -652,45 +828,62 @@ with tab3:
     if avoid_periods:
         st.subheader("⚠️ Periods to Avoid/Short")
         for avoid in avoid_periods[:3]:
-            st.markdown(f'<div class="exit-signal"><strong>{avoid["Time"]} - {avoid["HoraLord"]} Hora</strong><br>Action: Avoid/Short<br>Reason: {avoid["Influence"][:100]}...</div>', unsafe_allow_html=True)
+            avoid_content = f"""
+            <div class="exit-warning">
+                <h4>⏰ {avoid["Time"]} - {avoid["HoraLord"]} Hora</h4>
+                <p><strong>Action:</strong> Avoid/Short</p>
+                <p><strong>Reason:</strong> {avoid["Influence"][:120]}...</p>
+                <p><strong>Score:</strong> {avoid['SentimentScore']:.1f}</p>
+            </div>
+            """
+            st.markdown(avoid_content, unsafe_allow_html=True)
     else:
         st.info("No major bearish signals detected today.")
     
     # Symbol-specific strategy
-    st.subheader(f"📈 {symbol}-Specific Strategy")
+    st.subheader(f"📈 {symbol}-Specific Analysis")
     
-    if symbol.upper() == "NIFTY":
-        jupiter_degree = st.session_state.planetary_degrees.get('Jupiter', 0)
-        saturn_degree = st.session_state.planetary_degrees.get('Saturn', 0)
-        st.write(f"• **Support Levels:** Jupiter at {jupiter_degree:.0f}° provides support")
-        st.write(f"• **Resistance:** Saturn at {saturn_degree:.0f}° may create resistance")
-        st.write(f"• **Breakout Potential:** {'High' if sentiment_score > 2 else 'Moderate' if sentiment_score > 0 else 'Low'}")
-        
-    elif symbol.upper() == "BANKNIFTY":
-        mars_degree = st.session_state.planetary_degrees.get("Mars", 0)
-        mars_sign = get_sign_from_degree(mars_degree)
-        mars_strength = get_planet_strength("Mars", mars_sign)
-        st.write(f"• **Mars Influence:** Mars at {mars_degree:.0f}° in {mars_sign} - {mars_strength}")
-        st.write(f"• **Banking Sentiment:** {'Positive' if sentiment_score > 1 else 'Negative' if sentiment_score < -1 else 'Mixed'}")
-        st.write(f"• **Volatility Expected:** {'High' if abs(sentiment_score) > 2 else 'Moderate'}")
+    col1, col2 = st.columns(2)
     
-    # Risk management
-    st.subheader("🛡️ Risk Management")
-    st.write(f"• **Position Size:** {'Conservative (10-15%)' if abs(sentiment_score) > 3 else 'Moderate (15-20%)' if abs(sentiment_score) > 1 else 'Normal (20-25%)'}")
-    st.write("• **Stop-Loss:** 0.5% for intraday, 1% for swing trades")
-    st.write(f"• **Profit Booking:** {'Aggressive' if sentiment == 'Extremely Bullish' else 'Gradual'} - book 50% at 1st target")
-    st.write("• **Max Daily Loss:** 2% of capital")
+    with col1:
+        if symbol.upper() == "NIFTY":
+            jupiter_degree = st.session_state.planetary_degrees.get('Jupiter', 0)
+            saturn_degree = st.session_state.planetary_degrees.get('Saturn', 0)
+            st.write(f"• **Support Levels:** Jupiter at {jupiter_degree:.0f}°")
+            st.write(f"• **Resistance:** Saturn at {saturn_degree:.0f}°")
+            st.write(f"• **Breakout Potential:** {'High' if sentiment_data['sentiment_score'] > 2 else 'Moderate' if sentiment_data['sentiment_score'] > 0 else 'Low'}")
+            
+        elif symbol.upper() == "BANKNIFTY":
+            mars_degree = st.session_state.planetary_degrees.get("Mars", 0)
+            mars_sign = get_sign_from_degree(mars_degree)
+            mars_strength = get_planet_strength("Mars", mars_sign)
+            st.write(f"• **Mars Influence:** {mars_degree:.0f}° in {mars_sign} - {mars_strength}")
+            st.write(f"• **Banking Sentiment:** {'Positive' if sentiment_data['sentiment_score'] > 1 else 'Negative' if sentiment_data['sentiment_score'] < -1 else 'Mixed'}")
+            st.write(f"• **Volatility:** {'High' if abs(sentiment_data['sentiment_score']) > 2 else 'Moderate'}")
+    
+    with col2:
+        st.subheader("🛡️ Risk Management")
+        st.write(f"• **Position Size:** {'Conservative (10-15%)' if abs(sentiment_data['sentiment_score']) > 3 else 'Moderate (15-20%)' if abs(sentiment_data['sentiment_score']) > 1 else 'Normal (20-25%)'}")
+        st.write("• **Stop-Loss:** 0.5% for intraday, 1% for swing")
+        st.write(f"• **Profit Booking:** {'Aggressive' if sentiment_data['sentiment'] == 'Extremely Bullish' else 'Gradual'}")
+        st.write("• **Max Daily Loss:** 2% of capital")
     
     # Key insight
-    insight_text = "Focus on long positions during favorable horas." if sentiment_score > 0 else "Exercise caution and consider short strategies." if sentiment_score < -1 else "Mixed signals suggest smaller position sizes."
-    st.info(f"**Today's Key Insight:** {date_str} shows {sentiment.lower()} energy. {insight_text}")
+    insight_text = "Focus on long positions during favorable horas." if sentiment_data['sentiment_score'] > 0 else "Exercise caution and consider short strategies." if sentiment_data['sentiment_score'] < -1 else "Mixed signals suggest smaller position sizes."
+    st.info(f"**Today's Key Insight:** {date_str} shows {sentiment_data['sentiment'].lower()} energy. {insight_text}")
 
 with tab4:
     st.header("🔮 Multi-day Forecast")
     
     # Generate 7-day forecast
+    forecast_dates = []
     for i in range(-3, 4):
         forecast_date = date + datetime.timedelta(days=i)
+        forecast_dates.append((forecast_date, i))
+    
+    col1, col2 = st.columns(2)
+    
+    for idx, (forecast_date, day_offset) in enumerate(forecast_dates):
         forecast_degrees = calculate_dynamic_planetary_positions(forecast_date)
         forecast_aspects = calculate_dynamic_aspects(forecast_degrees)
         
@@ -709,28 +902,46 @@ with tab4:
             forecast_planetary_data, forecast_aspects, forecast_date
         )
         
-        # Create forecast card
-        col1, col2 = st.columns([3, 1])
+        # Alternate between columns
+        current_col = col1 if idx % 2 == 0 else col2
         
-        with col1:
-            if i == 0:  # Today
-                st.markdown(f'<div class="forecast-card forecast-today"><h3>🎯 {forecast_date.strftime("%d %B %Y")} ({forecast_date.strftime("%A")}) - TODAY</h3><strong>Key Influences:</strong> {len(forecast_aspects)} active aspects | Score: {forecast_score:.1f}</div>', unsafe_allow_html=True)
-            else:
-                st.markdown(f'<div class="forecast-card"><h3>{forecast_date.strftime("%d %B %Y")} ({forecast_date.strftime("%A")})</h3><strong>Key Influences:</strong> {len(forecast_aspects)} active aspects | Score: {forecast_score:.1f}</div>', unsafe_allow_html=True)
-        
-        with col2:
-            if forecast_sentiment in ["Very Bullish", "Bullish"]:
-                st.success(forecast_sentiment)
-            elif forecast_sentiment in ["Very Bearish", "Bearish"]:
-                st.error(forecast_sentiment)
-            else:
-                st.warning(forecast_sentiment)
+        with current_col:
+            # Create forecast card
+            card_class = "forecast-container forecast-today" if day_offset == 0 else "forecast-container"
             
-            # Recommendation
-            recommendation = "Long bias" if forecast_score > 1 else "Short bias" if forecast_score < -1 else "Neutral"
-            st.caption(f"**Rec:** {recommendation}")
+            forecast_content = f"""
+            <div class="{card_class}">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <div>
+                        <h3 style="margin: 0; color: #333;">
+                            {forecast_date.strftime("%d %B %Y")} ({forecast_date.strftime("%A")})
+                            {"🎯 TODAY" if day_offset == 0 else ""}
+                        </h3>
+                    </div>
+                </div>
+                <div style="color: #666; margin-bottom: 10px;">
+                    <strong>Sentiment:</strong> {forecast_sentiment} (Score: {forecast_score:.1f})<br>
+                    <strong>Active Aspects:</strong> {len(forecast_aspects)}<br>
+                    <strong>Recommendation:</strong> {"Long bias" if forecast_score > 1 else "Short bias" if forecast_score < -1 else "Neutral approach"}
+                </div>
+            </div>
+            """
+            st.markdown(forecast_content, unsafe_allow_html=True)
+            
+            # Sentiment indicator
+            if forecast_sentiment in ["Very Bullish", "Extremely Bullish"]:
+                st.success(f"🚀 {forecast_sentiment}")
+            elif forecast_sentiment == "Bullish":
+                st.success(f"📈 {forecast_sentiment}")
+            elif forecast_sentiment in ["Very Bearish", "Extremely Bearish"]:
+                st.error(f"📉 {forecast_sentiment}")
+            elif forecast_sentiment == "Bearish":
+                st.error(f"🔻 {forecast_sentiment}")
+            else:
+                st.warning(f"⚖️ {forecast_sentiment}")
 
 # Footer
 st.markdown("---")
 st.markdown("🌟 **Dynamic Planetary Trading Dashboard** | Real-time Astro-Financial Intelligence")
 st.caption("Powered by Advanced Astrological Calculations & Market Analysis")
+st.caption(f"Last Updated: {current_time.strftime('%Y-%m-%d %H:%M:%S')} | Data for: {date.strftime('%d %B %Y')} | Symbol: {symbol}")
