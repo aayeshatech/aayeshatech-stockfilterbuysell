@@ -6,7 +6,6 @@ import time
 import plotly.graph_objects as go
 import plotly.express as px
 import math
-
 # Set page configuration
 st.set_page_config(
     page_title="Dynamic Planetary Trading Dashboard",
@@ -14,7 +13,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
 # Simple CSS for basic styling only
 st.markdown("""
 <style>
@@ -37,12 +35,11 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
 # Initialize session state with proper defaults
 def initialize_session_state():
     defaults = {
         'planetary_data': [],
-        'current_date': datetime.date.today(),
+        'current_date': datetime.date(2025, 8, 6),  # Set default to Aug 6, 2025
         'current_symbol': "NIFTY",
         'planetary_degrees': {},
         'timeline_data': [],
@@ -55,11 +52,11 @@ def initialize_session_state():
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
-
 # Enhanced planetary calculations
 def calculate_dynamic_planetary_positions(date):
     """Calculate actual planetary positions based on date"""
-    reference_date = datetime.date(2025, 1, 1)
+    # Updated reference date to August 6, 2025
+    reference_date = datetime.date(2025, 8, 6)
     days_diff = (date - reference_date).days
     
     daily_movements = {
@@ -68,10 +65,17 @@ def calculate_dynamic_planetary_positions(date):
         "Saturn": 0.034, "Rahu": -0.053, "Ketu": -0.053
     }
     
+    # Updated base positions for August 6, 2025 (as per your requirements)
     base_positions = {
-        "Sun": 279.5, "Moon": 145.2, "Mercury": 285.1, 
-        "Venus": 320.7, "Mars": 295.3, "Jupiter": 42.8, 
-        "Saturn": 332.1, "Rahu": 15.4, "Ketu": 195.4
+        "Sun": 109.5,      # Cancer 19°30' = 90 + 19.5
+        "Moon": 251.68,    # Sagittarius 11°41' = 240 + 11.6833
+        "Mercury": 94.27,  # Cancer 4°16' = 90 + 4.2667
+        "Venus": 137.75,   # Leo 17°45' = 120 + 17.75
+        "Mars": 87.0,      # Gemini 27°00' = 60 + 27
+        "Jupiter": 22.67,  # Aries 22°40' = 0 + 22.6667
+        "Saturn": 308.33,  # Aquarius 8°20' = 300 + 8.3333
+        "Rahu": 352.67,    # Pisces 22°40' = 330 + 22.6667
+        "Ketu": 172.67     # Virgo 22°40' = 150 + 22.6667
     }
     
     new_positions = {}
@@ -81,7 +85,6 @@ def calculate_dynamic_planetary_positions(date):
         new_positions[planet] = new_pos
     
     return new_positions
-
 def get_planet_strength(planet, sign):
     """Calculate planet strength in sign"""
     planet_rulerships = {
@@ -105,7 +108,6 @@ def get_planet_strength(planet, sign):
         elif sign == rulership.get("debilitated"):
             return "Debilitated"
     return "Neutral"
-
 def get_sign_from_degree(degree):
     """Get zodiac sign from degree"""
     signs = [
@@ -114,7 +116,6 @@ def get_sign_from_degree(degree):
     ]
     sign_index = int(degree // 30)
     return signs[sign_index % 12]
-
 def get_nakshatra_from_degree(degree):
     """Get nakshatra from degree"""
     nakshatras = [
@@ -126,7 +127,6 @@ def get_nakshatra_from_degree(degree):
     ]
     nakshatra_index = int(degree // 13.333333)
     return nakshatras[nakshatra_index % 27]
-
 def calculate_dynamic_aspects(degrees):
     """Calculate aspects with orb strength"""
     aspects = []
@@ -171,7 +171,6 @@ def calculate_dynamic_aspects(degrees):
                     })
     
     return aspects
-
 def calculate_market_sentiment_dynamic(planetary_data, aspects, date):
     """Dynamic market sentiment calculation"""
     sentiment_score = 0
@@ -264,7 +263,6 @@ def calculate_market_sentiment_dynamic(planetary_data, aspects, date):
         return "Very Bearish", sentiment_score, sentiment_factors
     else:
         return "Extremely Bearish", sentiment_score, sentiment_factors
-
 def generate_dynamic_timeline(symbol, date, planetary_degrees, aspects):
     """Generate dynamic timeline based on actual planetary positions"""
     market_type = "Indian" if symbol.upper() in ["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY"] else "International"
@@ -338,7 +336,6 @@ def generate_dynamic_timeline(symbol, date, planetary_degrees, aspects):
         hora_index += 1
     
     return timeline_data
-
 def update_all_data(date, symbol):
     """Update all data when date or symbol changes"""
     with st.spinner("Updating planetary data..."):
@@ -411,18 +408,14 @@ def update_all_data(date, symbol):
         
         st.session_state.forecast_data = forecast_data
         st.session_state.last_update = datetime.datetime.now()
-
 # Initialize session state
 initialize_session_state()
-
 # Header
 st.markdown('<div class="main-title">🌟 DYNAMIC PLANETARY TRADING DASHBOARD</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">Real-time Astro-Financial Intelligence System</div>', unsafe_allow_html=True)
-
 # Live time display
 current_time = datetime.datetime.now()
 market_status = "OPEN" if 9 <= current_time.hour <= 15 and current_time.weekday() < 5 else "CLOSED"
-
 col1, col2, col3 = st.columns(3)
 with col1:
     st.info(f"🕐 **Live Time:** {current_time.strftime('%H:%M:%S')}")
@@ -430,24 +423,24 @@ with col2:
     st.info(f"📅 **Date:** {current_time.strftime('%d %B %Y')}")
 with col3:
     st.info(f"📈 **Market Status:** {market_status}")
-
 # Sidebar
 st.sidebar.header("📊 Trading Parameters")
 date = st.sidebar.date_input("📅 Select Date", value=st.session_state.current_date)
 symbol = st.sidebar.text_input("💹 Trading Symbol", value=st.session_state.current_symbol)
 city = st.sidebar.text_input("🌍 Location", value="Mumbai")
 
+# Display reference date info
+st.sidebar.markdown("---")
+st.sidebar.info(f"**Reference Date:** August 6, 2025\n*All calculations based on planetary positions from this date*")
 # Auto-update when inputs change
 if date != st.session_state.current_date or symbol != st.session_state.current_symbol:
     st.session_state.current_date = date
     st.session_state.current_symbol = symbol
     update_all_data(date, symbol)
     st.rerun()
-
 # Initialize data if not exists
 if not st.session_state.planetary_data or not st.session_state.last_update:
     update_all_data(date, symbol)
-
 # Display market sentiment
 sentiment_data = st.session_state.sentiment_data
 if sentiment_data:
@@ -460,10 +453,8 @@ if sentiment_data:
         st.error(f"📉 **Market Sentiment: {sentiment}** | Score: {score:.1f}")
     else:
         st.warning(f"⚖️ **Market Sentiment: {sentiment}** | Score: {score:.1f}")
-
 # Create tabs
 tab1, tab2, tab3, tab4 = st.tabs(["🕐 Transit Timeline", "🪐 Planetary Positions", "⚡ Strategy", "🔮 Forecast"])
-
 with tab1:
     st.header("🕐 Critical Transit Timeline")
     
@@ -534,7 +525,6 @@ with tab1:
                 st.divider()
     else:
         st.warning("No timeline data available. Please update parameters.")
-
 with tab2:
     st.header("🪐 Planetary Positions & Strengths")
     
@@ -585,7 +575,6 @@ with tab2:
         st.dataframe(aspects_df, use_container_width=True)
     else:
         st.info("No significant aspects found for this date.")
-
 with tab3:
     st.header("⚡ Dynamic Trading Strategy")
     
@@ -662,7 +651,6 @@ with tab3:
             st.write(f"• **Position Size:** {'Conservative (10-15%)' if abs(sentiment_data['sentiment_score']) > 3 else 'Moderate (15-20%)' if abs(sentiment_data['sentiment_score']) > 1 else 'Normal (20-25%)'}")
             st.write("• **Stop-Loss:** 0.5% intraday, 1% swing")
             st.write("• **Max Daily Loss:** 2% of capital")
-
 with tab4:
     st.header("🔮 Multi-day Forecast")
     
@@ -694,11 +682,9 @@ with tab4:
                     st.caption(f"**Recommendation:** {recommendation}")
                     
                     st.divider()
-
 # Footer
 st.markdown("---")
 col1, col2, col3 = st.columns(3)
-
 with col1:
     st.caption("🌟 **Dynamic Planetary Trading Dashboard**")
 with col2:
@@ -706,14 +692,12 @@ with col2:
 with col3:
     if st.session_state.last_update:
         st.caption(f"Last Updated: {st.session_state.last_update.strftime('%H:%M:%S')}")
-
 # Display current parameters
 st.sidebar.markdown("---")
 st.sidebar.subheader("📋 Current Parameters")
 st.sidebar.write(f"**Date:** {date.strftime('%d %B %Y')}")
 st.sidebar.write(f"**Symbol:** {symbol}")
 st.sidebar.write(f"**Location:** {city}")
-
 if st.session_state.sentiment_data:
     sentiment = st.session_state.sentiment_data["sentiment"]
     score = st.session_state.sentiment_data["sentiment_score"]
