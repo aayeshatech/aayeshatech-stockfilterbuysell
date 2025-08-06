@@ -33,8 +33,115 @@ st.markdown("""
         padding: 1rem;
         border-radius: 0.5rem;
     }
+    .bullish {
+        color: #16a34a;
+        font-weight: bold;
+    }
+    .bearish {
+        color: #dc2626;
+        font-weight: bold;
+    }
+    .neutral {
+        color: #6b7280;
+        font-weight: bold;
+    }
 </style>
 """, unsafe_allow_html=True)
+
+# Define planetary aspects data for August 6, 2025
+aug6_aspects = [
+    {
+        "time": "02:06 am",
+        "aspect": "Moon Quintile Node (☽ ⬠ ☊)",
+        "meaning": "Unusual opportunities, karmic shifts",
+        "indian_market": "Neutral",
+        "commodities": "Neutral",
+        "forex": "Sudden trend change",
+        "global_market": "Neutral"
+    },
+    {
+        "time": "02:34 am",
+        "aspect": "Moon BiQuintile Uranus (☽ bQ ♅)",
+        "meaning": "Innovative but erratic energy",
+        "indian_market": "Tech stocks volatile",
+        "commodities": "Neutral",
+        "forex": "Bullish",
+        "global_market": "Neutral"
+    },
+    {
+        "time": "02:38 am",
+        "aspect": "Moon Opposition Venus (☽ ☍ ♀)",
+        "meaning": "Emotional vs. financial balance",
+        "indian_market": "Neutral",
+        "commodities": "Short-term dip",
+        "forex": "Neutral",
+        "global_market": "Neutral"
+    },
+    {
+        "time": "04:38 am",
+        "aspect": "Sun BiQuintile Moon (☉ bQ ☽)",
+        "meaning": "Creative problem-solving",
+        "indian_market": "BankNifty recovery",
+        "commodities": "Neutral",
+        "forex": "Neutral",
+        "global_market": "Neutral"
+    },
+    {
+        "time": "10:25 am",
+        "aspect": "Mars SemiSquare Lilith (♂ ∠ ⚸)",
+        "meaning": "Aggressive speculation",
+        "indian_market": "Midcaps/Smallcaps risks",
+        "commodities": "Neutral",
+        "forex": "Neutral",
+        "global_market": "Neutral"
+    },
+    {
+        "time": "01:39 pm",
+        "aspect": "Moon Opposition Jupiter (☽ ☍ ♃)",
+        "meaning": "Overconfidence vs. reality check",
+        "indian_market": "Rally then profit-booking",
+        "commodities": "Neutral",
+        "forex": "Neutral",
+        "global_market": "Temporary rally then profit-booking"
+    },
+    {
+        "time": "04:53 pm",
+        "aspect": "Sun Quincunx Moon (☉ ⚻ ☽)",
+        "meaning": "Adjustments needed",
+        "indian_market": "Neutral",
+        "commodities": "Bearish pressure",
+        "forex": "Neutral",
+        "global_market": "Neutral"
+    },
+    {
+        "time": "05:10 pm",
+        "aspect": "Moon Sextile Lilith (☽ ⚹ ⚸)",
+        "meaning": "Hidden opportunities",
+        "indian_market": "Neutral",
+        "commodities": "Neutral",
+        "forex": "Altcoins rally",
+        "global_market": "Neutral"
+    },
+    {
+        "time": "07:35 pm",
+        "aspect": "Moon Sesquiquadrate Uranus (☽ ⚼ ♅)",
+        "meaning": "Sudden disruptions",
+        "indian_market": "Neutral",
+        "commodities": "Neutral",
+        "forex": "Neutral",
+        "global_market": "After-hours volatility"
+    },
+    {
+        "time": "09:18 pm",
+        "aspect": "Sun Square Lilith (☉ ☐ ⚸)",
+        "meaning": "Power struggles, manipulation",
+        "indian_market": "Neutral",
+        "commodities": "Institutional manipulation",
+        "forex": "Neutral",
+        "global_market": "Neutral"
+    }
+]
+
 # Initialize session state with proper defaults
 def initialize_session_state():
     defaults = {
@@ -428,7 +535,6 @@ st.sidebar.header("📊 Trading Parameters")
 date = st.sidebar.date_input("📅 Select Date", value=st.session_state.current_date)
 symbol = st.sidebar.text_input("💹 Trading Symbol", value=st.session_state.current_symbol)
 city = st.sidebar.text_input("🌍 Location", value="Mumbai")
-
 # Display reference date info
 st.sidebar.markdown("---")
 st.sidebar.info(f"**Reference Date:** August 6, 2025\n*All calculations based on planetary positions from this date*")
@@ -454,7 +560,7 @@ if sentiment_data:
     else:
         st.warning(f"⚖️ **Market Sentiment: {sentiment}** | Score: {score:.1f}")
 # Create tabs
-tab1, tab2, tab3, tab4 = st.tabs(["🕐 Transit Timeline", "🪐 Planetary Positions", "⚡ Strategy", "🔮 Forecast"])
+tab1, tab2, tab3, tab4, tab5 = st.tabs(["🕐 Transit Timeline", "🪐 Planetary Positions", "⚡ Strategy", "🔮 Forecast", "📅 Aspects Timeline"])
 with tab1:
     st.header("🕐 Critical Transit Timeline")
     
@@ -682,6 +788,187 @@ with tab4:
                     st.caption(f"**Recommendation:** {recommendation}")
                     
                     st.divider()
+with tab5:
+    st.header("📅 Planetary Aspects Timeline")
+    
+    # Check if date is August 6, 2025
+    if date != datetime.date(2025, 8, 6):
+        st.warning("⚠️ Detailed aspects timeline is only available for August 6, 2025. Please select this date to view the complete timeline.")
+    else:
+        # Symbol selection
+        symbol_options = ["Nifty", "BankNifty", "Gold", "Silver", "Crude", "BTC", "DowJones"]
+        selected_symbol = st.selectbox("🔍 Select Symbol for Timeline View", symbol_options)
+        
+        # Define market hours
+        indian_market_open = datetime.time(9, 15)
+        indian_market_close = datetime.time(15, 30)
+        global_market_open = datetime.time(5, 0)
+        global_market_close = datetime.time(23, 55)
+        
+        # Prepare aspects data for display
+        aspects_display = []
+        for aspect in aug6_aspects:
+            # Parse time
+            time_str = aspect["time"]
+            hour_min = time_str.replace(" am", "").replace(" pm", "")
+            hour, minute = map(int, hour_min.split(":"))
+            if "pm" in time_str and hour != 12:
+                hour += 12
+            aspect_time = datetime.time(hour, minute)
+            
+            # Determine market status
+            market_status = ""
+            if indian_market_open <= aspect_time <= indian_market_close:
+                market_status = "🇮🇳 Indian Market Open"
+            elif global_market_open <= aspect_time <= global_market_close:
+                market_status = "🌍 Global Market Open"
+            else:
+                market_status = "⚫ Closed"
+            
+            # Get impact for selected symbol
+            if selected_symbol in ["Nifty", "BankNifty"]:
+                impact = aspect["indian_market"]
+            elif selected_symbol in ["Gold", "Silver", "Crude"]:
+                impact = aspect["commodities"]
+            elif selected_symbol == "BTC":
+                impact = aspect["forex"]
+            elif selected_symbol == "DowJones":
+                impact = aspect["global_market"]
+            else:
+                impact = "Neutral"
+            
+            aspects_display.append({
+                "Time": aspect["time"],
+                "Aspect": aspect["aspect"],
+                "Meaning": aspect["meaning"],
+                "Impact": impact,
+                "Market Status": market_status
+            })
+        
+        # Display aspects table
+        st.subheader(f"Planetary Aspects for {selected_symbol} - August 6, 2025")
+        
+        # Create DataFrame with styling
+        df = pd.DataFrame(aspects_display)
+        
+        # Style the DataFrame
+        def highlight_impact(val):
+            color = ''
+            if "Bullish" in val or "recovery" in val.lower() or "rally" in val.lower():
+                color = 'background-color: #d4edda; color: #155724'
+            elif "Bearish" in val or "dip" in val.lower() or "pressure" in val.lower() or "risks" in val.lower():
+                color = 'background-color: #f8d7da; color: #721c24'
+            else:
+                color = 'background-color: #fff3cd; color: #856404'
+            return color
+        
+        styled_df = df.style.applymap(highlight_impact, subset=['Impact'])
+        
+        # Display the styled table
+        st.dataframe(styled_df, use_container_width=True)
+        
+        # Create a visual timeline
+        st.subheader("📊 Visual Timeline")
+        
+        # Prepare data for timeline visualization
+        timeline_viz = []
+        for aspect in aspects_display:
+            impact = aspect["Impact"]
+            
+            # Determine sentiment
+            if "Bullish" in impact or "recovery" in impact.lower() or "rally" in impact.lower():
+                sentiment = "Bullish"
+            elif "Bearish" in impact or "dip" in impact.lower() or "pressure" in impact.lower() or "risks" in impact.lower():
+                sentiment = "Bearish"
+            else:
+                sentiment = "Neutral"
+            
+            timeline_viz.append({
+                "Time": aspect_time.strftime("%H:%M"),
+                "Aspect": aspect["Aspect"].split(" (")[0],
+                "Sentiment": sentiment,
+                "Impact": impact
+            })
+        
+        # Sort by time
+        timeline_viz.sort(key=lambda x: x["Time"])
+        
+        # Create timeline chart
+        fig = go.Figure()
+        
+        # Add Indian market hours background
+        fig.add_vrect(
+            x0="9:15", x1="15:30",
+            fillcolor="LightGreen", opacity=0.2,
+            layer="below", line_width=0,
+            annotation_text="Indian Market Hours"
+        )
+        
+        # Add global market hours background
+        fig.add_vrect(
+            x0="5:00", x1="23:55",
+            fillcolor="LightBlue", opacity=0.1,
+            layer="below", line_width=0,
+            annotation_text="Global Market Hours"
+        )
+        
+        # Add aspects as scatter points
+        colors = {"Bullish": "green", "Bearish": "red", "Neutral": "orange"}
+        
+        for item in timeline_viz:
+            fig.add_trace(go.Scatter(
+                x=[item["Time"]],
+                y=[1],
+                mode="markers+text",
+                marker=dict(size=15, color=colors[item["Sentiment"]]),
+                text=item["Aspect"],
+                textposition="top center",
+                name=item["Aspect"],
+                hovertext=f"<b>{item['Aspect']}</b><br>Sentiment: {item['Sentiment']}<br>Impact: {item['Impact']}",
+                hoverinfo="text"
+            ))
+        
+        fig.update_layout(
+            title=f"Planetary Aspects Timeline for {selected_symbol}",
+            xaxis_title="Time",
+            yaxis=dict(visible=False),
+            height=400,
+            showlegend=False
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Summary statistics
+        st.subheader("📈 Summary Statistics")
+        
+        sentiment_counts = df['Impact'].apply(lambda x: 'Bullish' if 'Bullish' in x or 'recovery' in x.lower() or 'rally' in x.lower() else ('Bearish' if 'Bearish' in x or 'dip' in x.lower() or 'pressure' in x.lower() or 'risks' in x.lower() else 'Neutral')).value_counts()
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.metric("🟢 Bullish Aspects", sentiment_counts.get('Bullish', 0))
+        with col2:
+            st.metric("🔴 Bearish Aspects", sentiment_counts.get('Bearish', 0))
+        with col3:
+            st.metric("⚪ Neutral Aspects", sentiment_counts.get('Neutral', 0))
+        
+        # Key insights
+        st.subheader("💡 Key Insights for " + selected_symbol)
+        
+        # Get all aspects for the selected symbol
+        symbol_aspects = [aspect for aspect in aspects_display if aspect["Impact"] != "Neutral"]
+        
+        if symbol_aspects:
+            for aspect in symbol_aspects:
+                impact = aspect["Impact"]
+                if "Bullish" in impact or "recovery" in impact.lower() or "rally" in impact.lower():
+                    st.success(f"🟢 **{aspect['Time']} - {aspect['Aspect'].split(' (')[0]}**")
+                    st.write(f"   {impact}")
+                elif "Bearish" in impact or "dip" in impact.lower() or "pressure" in impact.lower() or "risks" in impact.lower():
+                    st.error(f"🔴 **{aspect['Time']} - {aspect['Aspect'].split(' (')[0]}**")
+                    st.write(f"   {impact}")
+        else:
+            st.info("No significant planetary aspects directly affecting this symbol on this date.")
+
 # Footer
 st.markdown("---")
 col1, col2, col3 = st.columns(3)
