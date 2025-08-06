@@ -225,7 +225,7 @@ actual_market_data = {
     datetime.date(2025, 8, 6): {"sentiment": "Very Bearish", "score": -3.0, "reason": "Continued selling pressure, bearish trend"}
 }
 
-# Define planetary aspects data for August 6, 2025
+# Define planetary aspects data for August 6, 2025 - UPDATED WITH NEW IMPACT MEANINGS
 aug6_aspects = [
     {
         "time": "02:06 am",
@@ -242,7 +242,7 @@ aug6_aspects = [
         "meaning": "Innovative but erratic energy",
         "indian_market": "Tech stocks volatile",
         "commodities": "Neutral",
-        "forex": "Bullish",
+        "forex": "Positive movement",
         "global_market": "Neutral"
     },
     {
@@ -258,7 +258,7 @@ aug6_aspects = [
         "time": "04:38 am",
         "aspect": "Sun BiQuintile Moon (☉ bQ ☽)",
         "meaning": "Creative problem-solving",
-        "indian_market": "BankNifty recovery",
+        "indian_market": "Banking recovery",
         "commodities": "Neutral",
         "forex": "Neutral",
         "global_market": "Neutral"
@@ -276,17 +276,17 @@ aug6_aspects = [
         "time": "01:39 pm",
         "aspect": "Moon Opposition Jupiter (☽ ☍ ♃)",
         "meaning": "Overconfidence vs. reality check",
-        "indian_market": "Rally then profit-booking",
+        "indian_market": "Rally then profit-taking",
         "commodities": "Neutral",
         "forex": "Neutral",
-        "global_market": "Temporary rally then profit-booking"
+        "global_market": "Temporary rally then profit-taking"
     },
     {
         "time": "04:53 pm",
         "aspect": "Sun Quincunx Moon (☉ ⚻ ☽)",
         "meaning": "Adjustments needed",
         "indian_market": "Neutral",
-        "commodities": "Bearish pressure",
+        "commodities": "Downward pressure",
         "forex": "Neutral",
         "global_market": "Neutral"
     },
@@ -296,7 +296,7 @@ aug6_aspects = [
         "meaning": "Hidden opportunities",
         "indian_market": "Neutral",
         "commodities": "Neutral",
-        "forex": "Altcoins rally",
+        "forex": "Altcoins surge",
         "global_market": "Neutral"
     },
     {
@@ -343,17 +343,17 @@ def generate_aspects_for_date(date):
             aspect = aspects[i]
             aspect_name = f"{aspect['Planet 1']} {aspect['Aspect']} {aspect['Planet 2']}"
             
-            # Determine market impacts based on aspect type
+            # Determine market impacts based on aspect type - UPDATED WITH NEW MEANINGS
             if aspect['Aspect'] in ['Trine', 'Sextile']:
-                indian_impact = "Bullish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
-                commodities_impact = "Bullish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
-                forex_impact = "Bullish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
-                global_impact = "Bullish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+                indian_impact = "Positive movement" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+                commodities_impact = "Positive movement" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+                forex_impact = "Positive movement" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+                global_impact = "Positive movement" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
             elif aspect['Aspect'] in ['Square', 'Opposition']:
-                indian_impact = "Bearish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
-                commodities_impact = "Bearish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
-                forex_impact = "Bearish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
-                global_impact = "Bearish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+                indian_impact = "Negative pressure" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+                commodities_impact = "Negative pressure" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+                forex_impact = "Negative pressure" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+                global_impact = "Negative pressure" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
             else:
                 indian_impact = "Neutral"
                 commodities_impact = "Neutral"
@@ -1309,11 +1309,18 @@ with tab5:
     st.subheader(f"Planetary Aspects for {selected_symbol} - {date.strftime('%d %B %Y')}")
     
     for aspect in aspects_display:
+        # Determine impact category for coloring
+        impact_category = "Neutral"
+        if "Positive" in aspect["Impact"] or "recovery" in aspect["Impact"].lower() or "rally" in aspect["Impact"].lower():
+            impact_category = "Positive"
+        elif "Negative" in aspect["Impact"] or "dip" in aspect["Impact"].lower() or "pressure" in aspect["Impact"].lower() or "risks" in aspect["Impact"].lower():
+            impact_category = "Negative"
+        
         impact_color = {
-            "Bullish": "#16a34a",
-            "Bearish": "#dc2626",
+            "Positive": "#16a34a",
+            "Negative": "#dc2626",
             "Neutral": "#f59e0b"
-        }.get(aspect["Impact"].split()[0] if aspect["Impact"].split()[0] in ["Bullish", "Bearish"] else "Neutral", "#6b7280")
+        }.get(impact_category, "#6b7280")
         
         st.markdown(f"""
         <div class="aspect-card">
@@ -1337,9 +1344,9 @@ with tab5:
     heatmap_data = []
     for aspect in aspects_display:
         impact = aspect["Impact"]
-        if "Bullish" in impact:
+        if "Positive" in impact:
             score = 1
-        elif "Bearish" in impact:
+        elif "Negative" in impact:
             score = -1
         else:
             score = 0
@@ -1369,22 +1376,22 @@ with tab5:
     
     # Create a DataFrame for sentiment analysis
     aspects_df = pd.DataFrame(aspects_display)
-    sentiment_counts = aspects_df['Impact'].apply(lambda x: 'Bullish' if 'Bullish' in x or 'recovery' in x.lower() or 'rally' in x.lower() else ('Bearish' if 'Bearish' in x or 'dip' in x.lower() or 'pressure' in x.lower() or 'risks' in x.lower() else 'Neutral')).value_counts()
+    sentiment_counts = aspects_df['Impact'].apply(lambda x: 'Positive' if 'Positive' in x or 'recovery' in x.lower() or 'rally' in x.lower() else ('Negative' if 'Negative' in x or 'dip' in x.lower() or 'pressure' in x.lower() or 'risks' in x.lower() else 'Neutral')).value_counts()
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
         st.markdown(f"""
         <div class="card bullish-card">
-            <h4>🟢 Bullish Aspects</h4>
-            <p style="font-size: 2rem; font-weight: bold;">{sentiment_counts.get('Bullish', 0)}</p>
+            <h4>🟢 Positive Aspects</h4>
+            <p style="font-size: 2rem; font-weight: bold;">{sentiment_counts.get('Positive', 0)}</p>
         </div>
         """, unsafe_allow_html=True)
     with col2:
         st.markdown(f"""
         <div class="card bearish-card">
-            <h4>🔴 Bearish Aspects</h4>
-            <p style="font-size: 2rem; font-weight: bold;">{sentiment_counts.get('Bearish', 0)}</p>
+            <h4>🔴 Negative Aspects</h4>
+            <p style="font-size: 2rem; font-weight: bold;">{sentiment_counts.get('Negative', 0)}</p>
         </div>
         """, unsafe_allow_html=True)
     with col3:
@@ -1419,8 +1426,8 @@ with tab6:
         # Impact filter
         impact_filter = st.multiselect(
             "📊 Filter by Impact",
-            ["Bullish", "Bearish", "Neutral"],
-            default=["Bullish", "Bearish", "Neutral"]
+            ["Positive", "Negative", "Neutral"],
+            default=["Positive", "Negative", "Neutral"]
         )
     
     # Generate aspects for the selected date range
@@ -1468,10 +1475,10 @@ with tab6:
                 
                 # Check if impact matches filter
                 impact_category = "Neutral"
-                if "Bullish" in impact or "recovery" in impact.lower() or "rally" in impact.lower():
-                    impact_category = "Bullish"
-                elif "Bearish" in impact or "dip" in impact.lower() or "pressure" in impact.lower() or "risks" in impact.lower():
-                    impact_category = "Bearish"
+                if "Positive" in impact or "recovery" in impact.lower() or "rally" in impact.lower():
+                    impact_category = "Positive"
+                elif "Negative" in impact or "dip" in impact.lower() or "pressure" in impact.lower() or "risks" in impact.lower():
+                    impact_category = "Negative"
                 
                 if impact_category in impact_filter:
                     # Add to filtered aspects
@@ -1500,8 +1507,8 @@ with tab6:
             
             # Create a color map for impacts
             color_map = {
-                "Bullish": "#16a34a",
-                "Bearish": "#dc2626",
+                "Positive": "#16a34a",
+                "Negative": "#dc2626",
                 "Neutral": "#f59e0b"
             }
             
@@ -1538,7 +1545,7 @@ with tab6:
             # Prepare data for bar chart
             bar_data = []
             for date, group in timeline_df.groupby('Date'):
-                for impact_cat in ['Bullish', 'Bearish', 'Neutral']:
+                for impact_cat in ['Positive', 'Negative', 'Neutral']:
                     count = len(group[group['Impact Category'] == impact_cat])
                     bar_data.append({
                         'Date': date,
@@ -1600,6 +1607,10 @@ st.markdown("""
 
 # Enhanced sidebar parameters
 st.sidebar.markdown("---")
+
+# Get current date from session state to avoid AttributeError
+current_date = st.session_state.get('current_date', datetime.date.today())
+
 st.sidebar.markdown("""
 <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; color: white;">
     <h4>📋 Current Parameters</h4>
@@ -1607,7 +1618,7 @@ st.sidebar.markdown("""
     <p><strong>Symbol:</strong> {}</p>
     <p><strong>Location:</strong> {}</p>
 </div>
-""".format(date.strftime('%d %B %Y'), symbol, city), unsafe_allow_html=True)
+""".format(current_date.strftime('%d %B %Y'), symbol, city), unsafe_allow_html=True)
 
 if st.session_state.sentiment_data:
     sentiment = st.session_state.sentiment_data["sentiment"]
