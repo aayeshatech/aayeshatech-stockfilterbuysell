@@ -6,6 +6,8 @@ import time
 import plotly.graph_objects as go
 import plotly.express as px
 import math
+from plotly.subplots import make_subplots
+
 # Set page configuration
 st.set_page_config(
     page_title="Dynamic Planetary Trading Dashboard",
@@ -13,37 +15,196 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-# Simple CSS for basic styling only
+
+# Enhanced CSS for dynamic theming
 st.markdown("""
 <style>
+    /* Main theme */
+    :root {
+        --primary-color: #e94560;
+        --secondary-color: #0f3460;
+        --accent-color: #533483;
+        --success-color: #16a34a;
+        --danger-color: #dc2626;
+        --warning-color: #f59e0b;
+        --info-color: #3b82f6;
+    }
+    
     .main-title {
         font-size: 2.5rem;
-        color: #e94560;
+        background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
         text-align: center;
         font-weight: bold;
         margin-bottom: 10px;
     }
+    
     .sub-title {
         font-size: 1.1rem;
         color: #666;
         text-align: center;
         margin-bottom: 20px;
     }
-    .stAlert > div {
-        padding: 1rem;
-        border-radius: 0.5rem;
+    
+    /* Tab-specific themes */
+    .tab1-theme {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 10px 0;
     }
-    .bullish {
-        color: #16a34a;
-        font-weight: bold;
+    
+    .tab2-theme {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 10px 0;
     }
-    .bearish {
-        color: #dc2626;
-        font-weight: bold;
+    
+    .tab3-theme {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 10px 0;
     }
-    .neutral {
-        color: #6b7280;
-        font-weight: bold;
+    
+    .tab4-theme {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 10px 0;
+    }
+    
+    .tab5-theme {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 10px 0;
+    }
+    
+    /* Card styles */
+    .card {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+    }
+    
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .bullish-card {
+        border-left: 5px solid var(--success-color);
+    }
+    
+    .bearish-card {
+        border-left: 5px solid var(--danger-color);
+    }
+    
+    .neutral-card {
+        border-left: 5px solid var(--warning-color);
+    }
+    
+    /* Timeline styles */
+    .timeline-item {
+        position: relative;
+        padding-left: 30px;
+        margin: 15px 0;
+    }
+    
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 5px;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: var(--primary-color);
+    }
+    
+    .timeline-line {
+        position: absolute;
+        left: 7px;
+        top: 20px;
+        bottom: 0;
+        width: 2px;
+        background: #ddd;
+    }
+    
+    /* Planet position styles */
+    .planet-card {
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        border-radius: 15px;
+        padding: 15px;
+        margin: 10px;
+        box-shadow: 5px 5px 10px #d1d1d1, -5px -5px 10px #ffffff;
+        transition: all 0.3s ease;
+    }
+    
+    .planet-card:hover {
+        transform: scale(1.05);
+    }
+    
+    /* Strategy card styles */
+    .strategy-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 15px 0;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+    }
+    
+    /* Forecast card styles */
+    .forecast-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
+        border-radius: 15px;
+        padding: 20px;
+        margin: 15px 0;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    /* Aspect timeline styles */
+    .aspect-card {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 0;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .aspect-card:hover {
+        transform: translateX(10px);
+    }
+    
+    /* Animations */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .pulse {
+        animation: pulse 2s infinite;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .main-title {
+            font-size: 2rem;
+        }
+        .card {
+            padding: 10px;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -146,7 +307,7 @@ aug6_aspects = [
 def initialize_session_state():
     defaults = {
         'planetary_data': [],
-        'current_date': datetime.date(2025, 8, 6),  # Set default to Aug 6, 2025
+        'current_date': datetime.date(2025, 8, 6),
         'current_symbol': "NIFTY",
         'planetary_degrees': {},
         'timeline_data': [],
@@ -159,10 +320,9 @@ def initialize_session_state():
     for key, value in defaults.items():
         if key not in st.session_state:
             st.session_state[key] = value
+
 # Enhanced planetary calculations
 def calculate_dynamic_planetary_positions(date):
-    """Calculate actual planetary positions based on date"""
-    # Updated reference date to August 6, 2025
     reference_date = datetime.date(2025, 8, 6)
     days_diff = (date - reference_date).days
     
@@ -172,17 +332,10 @@ def calculate_dynamic_planetary_positions(date):
         "Saturn": 0.034, "Rahu": -0.053, "Ketu": -0.053
     }
     
-    # Updated base positions for August 6, 2025 (as per your requirements)
     base_positions = {
-        "Sun": 109.5,      # Cancer 19°30' = 90 + 19.5
-        "Moon": 251.68,    # Sagittarius 11°41' = 240 + 11.6833
-        "Mercury": 94.27,  # Cancer 4°16' = 90 + 4.2667
-        "Venus": 137.75,   # Leo 17°45' = 120 + 17.75
-        "Mars": 87.0,      # Gemini 27°00' = 60 + 27
-        "Jupiter": 22.67,  # Aries 22°40' = 0 + 22.6667
-        "Saturn": 308.33,  # Aquarius 8°20' = 300 + 8.3333
-        "Rahu": 352.67,    # Pisces 22°40' = 330 + 22.6667
-        "Ketu": 172.67     # Virgo 22°40' = 150 + 22.6667
+        "Sun": 109.5, "Moon": 251.68, "Mercury": 94.27, 
+        "Venus": 137.75, "Mars": 87.0, "Jupiter": 22.67, 
+        "Saturn": 308.33, "Rahu": 352.67, "Ketu": 172.67
     }
     
     new_positions = {}
@@ -192,8 +345,8 @@ def calculate_dynamic_planetary_positions(date):
         new_positions[planet] = new_pos
     
     return new_positions
+
 def get_planet_strength(planet, sign):
-    """Calculate planet strength in sign"""
     planet_rulerships = {
         "Sun": {"exalted": "Aries", "own": ["Leo"], "debilitated": "Libra"},
         "Moon": {"exalted": "Taurus", "own": ["Cancer"], "debilitated": "Scorpio"},
@@ -215,16 +368,14 @@ def get_planet_strength(planet, sign):
         elif sign == rulership.get("debilitated"):
             return "Debilitated"
     return "Neutral"
+
 def get_sign_from_degree(degree):
-    """Get zodiac sign from degree"""
-    signs = [
-        "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-        "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
-    ]
+    signs = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
+             "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"]
     sign_index = int(degree // 30)
     return signs[sign_index % 12]
+
 def get_nakshatra_from_degree(degree):
-    """Get nakshatra from degree"""
     nakshatras = [
         "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra",
         "Punarvasu", "Pushya", "Ashlesha", "Magha", "Purva Phalguni", "Uttara Phalguni",
@@ -234,8 +385,8 @@ def get_nakshatra_from_degree(degree):
     ]
     nakshatra_index = int(degree // 13.333333)
     return nakshatras[nakshatra_index % 27]
+
 def calculate_dynamic_aspects(degrees):
-    """Calculate aspects with orb strength"""
     aspects = []
     planets = list(degrees.keys())
     
@@ -278,17 +429,16 @@ def calculate_dynamic_aspects(degrees):
                     })
     
     return aspects
+
 def calculate_market_sentiment_dynamic(planetary_data, aspects, date):
-    """Dynamic market sentiment calculation"""
     sentiment_score = 0
     sentiment_factors = []
     
-    # Planetary strength influence
     for planet in planetary_data:
         strength = planet.get("Strength", "Neutral")
         planet_name = planet["Planet"]
         
-        if planet_name in ["Jupiter", "Venus"]:  # Natural benefics
+        if planet_name in ["Jupiter", "Venus"]:
             if strength == "Exalted":
                 sentiment_score += 3
                 sentiment_factors.append(f"✅ {planet_name} exalted (+3)")
@@ -302,7 +452,7 @@ def calculate_market_sentiment_dynamic(planetary_data, aspects, date):
                 sentiment_score += 1
                 sentiment_factors.append(f"⚪ {planet_name} neutral (+1)")
         
-        elif planet_name in ["Mars", "Saturn"]:  # Natural malefics
+        elif planet_name in ["Mars", "Saturn"]:
             if strength == "Exalted":
                 sentiment_score += 1
                 sentiment_factors.append(f"⚡ {planet_name} exalted (+1)")
@@ -316,7 +466,7 @@ def calculate_market_sentiment_dynamic(planetary_data, aspects, date):
                 sentiment_score -= 1
                 sentiment_factors.append(f"⚠️ {planet_name} neutral (-1)")
         
-        elif planet_name in ["Rahu", "Ketu"]:  # Shadow planets
+        elif planet_name in ["Rahu", "Ketu"]:
             if strength == "Exalted":
                 sentiment_score += 0.5
                 sentiment_factors.append(f"🌟 {planet_name} exalted (+0.5)")
@@ -327,7 +477,6 @@ def calculate_market_sentiment_dynamic(planetary_data, aspects, date):
                 sentiment_score -= 0.5
                 sentiment_factors.append(f"🔄 {planet_name} creates uncertainty (-0.5)")
     
-    # Aspect influence (limit to top 6)
     for aspect in aspects[:6]:
         aspect_type = aspect["Aspect"]
         strength = aspect["Strength"]
@@ -341,7 +490,6 @@ def calculate_market_sentiment_dynamic(planetary_data, aspects, date):
             sentiment_score -= 1 * multiplier
             sentiment_factors.append(f"🔻 {aspect['Planet 1']}-{aspect['Planet 2']} {aspect_type} (-{1*multiplier:.1f})")
     
-    # Day of week influence
     weekday = date.weekday()
     weekday_effects = {
         0: ("🌙 Monday (Moon day) - emotional volatility", -0.5),
@@ -355,7 +503,6 @@ def calculate_market_sentiment_dynamic(planetary_data, aspects, date):
         sentiment_score += effect_score
         sentiment_factors.append(f"{effect_text} ({effect_score:+.1f})")
     
-    # Determine sentiment level
     if sentiment_score >= 4:
         return "Extremely Bullish", sentiment_score, sentiment_factors
     elif sentiment_score >= 2:
@@ -370,8 +517,8 @@ def calculate_market_sentiment_dynamic(planetary_data, aspects, date):
         return "Very Bearish", sentiment_score, sentiment_factors
     else:
         return "Extremely Bearish", sentiment_score, sentiment_factors
+
 def generate_dynamic_timeline(symbol, date, planetary_degrees, aspects):
-    """Generate dynamic timeline based on actual planetary positions"""
     market_type = "Indian" if symbol.upper() in ["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY"] else "International"
     
     hora_sequence = ["Sun", "Venus", "Mercury", "Moon", "Saturn", "Jupiter", "Mars"]
@@ -382,7 +529,7 @@ def generate_dynamic_timeline(symbol, date, planetary_degrees, aspects):
         times = ["05:00 AM", "07:00 AM", "09:00 AM", "11:00 AM", "01:00 PM", "03:00 PM", "05:00 PM", "07:00 PM", "09:00 PM", "11:00 PM"]
     
     timeline_data = []
-    hora_index = (date.weekday() * 24 + 9) % 7  # Start with appropriate hora
+    hora_index = (date.weekday() * 24 + 9) % 7
     
     for i, time_str in enumerate(times):
         hora_lord = hora_sequence[hora_index % 7]
@@ -443,13 +590,11 @@ def generate_dynamic_timeline(symbol, date, planetary_degrees, aspects):
         hora_index += 1
     
     return timeline_data
+
 def update_all_data(date, symbol):
-    """Update all data when date or symbol changes"""
     with st.spinner("Updating planetary data..."):
-        # Calculate new planetary positions
         st.session_state.planetary_degrees = calculate_dynamic_planetary_positions(date)
         
-        # Generate planetary data with strength
         planetary_data = []
         for planet, degree in st.session_state.planetary_degrees.items():
             sign = get_sign_from_degree(degree)
@@ -465,14 +610,9 @@ def update_all_data(date, symbol):
             })
         
         st.session_state.planetary_data = planetary_data
-        
-        # Calculate aspects
         st.session_state.aspects = calculate_dynamic_aspects(st.session_state.planetary_degrees)
-        
-        # Generate timeline
         st.session_state.timeline_data = generate_dynamic_timeline(symbol, date, st.session_state.planetary_degrees, st.session_state.aspects)
         
-        # Calculate sentiment
         sentiment, sentiment_score, sentiment_factors = calculate_market_sentiment_dynamic(
             st.session_state.planetary_data, st.session_state.aspects, date
         )
@@ -483,7 +623,6 @@ def update_all_data(date, symbol):
             "sentiment_factors": sentiment_factors
         }
         
-        # Generate forecast
         forecast_data = []
         for i in range(-3, 4):
             forecast_date = date + datetime.timedelta(days=i)
@@ -515,225 +654,348 @@ def update_all_data(date, symbol):
         
         st.session_state.forecast_data = forecast_data
         st.session_state.last_update = datetime.datetime.now()
+
 # Initialize session state
 initialize_session_state()
-# Header
-st.markdown('<div class="main-title">🌟 DYNAMIC PLANETARY TRADING DASHBOARD</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">Real-time Astro-Financial Intelligence System</div>', unsafe_allow_html=True)
-# Live time display
+
+# Header with dynamic styling
+st.markdown("""
+<div class="main-title">🌟 DYNAMIC PLANETARY TRADING DASHBOARD</div>
+<div class="sub-title">Real-time Astro-Financial Intelligence System</div>
+""", unsafe_allow_html=True)
+
+# Live time display with cards
 current_time = datetime.datetime.now()
 market_status = "OPEN" if 9 <= current_time.hour <= 15 and current_time.weekday() < 5 else "CLOSED"
+
 col1, col2, col3 = st.columns(3)
 with col1:
-    st.info(f"🕐 **Live Time:** {current_time.strftime('%H:%M:%S')}")
+    st.markdown("""
+    <div class="card">
+        <h4>🕐 Live Time</h4>
+        <p style="font-size: 1.2rem; font-weight: bold;">{}</p>
+    </div>
+    """.format(current_time.strftime('%H:%M:%S')), unsafe_allow_html=True)
 with col2:
-    st.info(f"📅 **Date:** {current_time.strftime('%d %B %Y')}")
+    st.markdown("""
+    <div class="card">
+        <h4>📅 Date</h4>
+        <p style="font-size: 1.2rem; font-weight: bold;">{}</p>
+    </div>
+    """.format(current_time.strftime('%d %B %Y')), unsafe_allow_html=True)
 with col3:
-    st.info(f"📈 **Market Status:** {market_status}")
-# Sidebar
-st.sidebar.header("📊 Trading Parameters")
+    status_color = "#16a34a" if market_status == "OPEN" else "#dc2626"
+    st.markdown("""
+    <div class="card">
+        <h4>📈 Market Status</h4>
+        <p style="font-size: 1.2rem; font-weight: bold; color: {};">{}</p>
+    </div>
+    """.format(status_color, market_status), unsafe_allow_html=True)
+
+# Sidebar with enhanced styling
+st.sidebar.markdown("""
+<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; border-radius: 15px; color: white;">
+    <h2>📊 Trading Parameters</h2>
+</div>
+""", unsafe_allow_html=True)
+
 date = st.sidebar.date_input("📅 Select Date", value=st.session_state.current_date)
 symbol = st.sidebar.text_input("💹 Trading Symbol", value=st.session_state.current_symbol)
 city = st.sidebar.text_input("🌍 Location", value="Mumbai")
-# Display reference date info
+
 st.sidebar.markdown("---")
-st.sidebar.info(f"**Reference Date:** August 6, 2025\n*All calculations based on planetary positions from this date*")
+st.sidebar.markdown("""
+<div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; color: white;">
+    <h4>📋 Reference Date</h4>
+    <p>August 6, 2025</p>
+    <small>All calculations based on planetary positions from this date</small>
+</div>
+""", unsafe_allow_html=True)
+
 # Auto-update when inputs change
 if date != st.session_state.current_date or symbol != st.session_state.current_symbol:
     st.session_state.current_date = date
     st.session_state.current_symbol = symbol
     update_all_data(date, symbol)
     st.rerun()
+
 # Initialize data if not exists
 if not st.session_state.planetary_data or not st.session_state.last_update:
     update_all_data(date, symbol)
-# Display market sentiment
+
+# Display market sentiment with enhanced card
 sentiment_data = st.session_state.sentiment_data
 if sentiment_data:
     sentiment = sentiment_data["sentiment"]
     score = sentiment_data["sentiment_score"]
     
     if "Bullish" in sentiment:
-        st.success(f"🚀 **Market Sentiment: {sentiment}** | Score: {score:.1f}")
+        bg_color = "linear-gradient(135deg, #16a34a, #22c55e)"
+        text_color = "white"
     elif "Bearish" in sentiment:
-        st.error(f"📉 **Market Sentiment: {sentiment}** | Score: {score:.1f}")
+        bg_color = "linear-gradient(135deg, #dc2626, #ef4444)"
+        text_color = "white"
     else:
-        st.warning(f"⚖️ **Market Sentiment: {sentiment}** | Score: {score:.1f}")
-# Create tabs
+        bg_color = "linear-gradient(135deg, #f59e0b, #fbbf24)"
+        text_color = "white"
+    
+    st.markdown(f"""
+    <div style="background: {bg_color}; padding: 20px; border-radius: 15px; color: {text_color}; text-align: center; margin: 20px 0;">
+        <h2>🚀 Market Sentiment: {sentiment}</h2>
+        <p style="font-size: 1.5rem;">Score: {score:.1f}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+# Create tabs with dynamic layouts
 tab1, tab2, tab3, tab4, tab5 = st.tabs(["🕐 Transit Timeline", "🪐 Planetary Positions", "⚡ Strategy", "🔮 Forecast", "📅 Aspects Timeline"])
+
 with tab1:
-    st.header("🕐 Critical Transit Timeline")
+    st.markdown("""
+    <div class="tab1-theme">
+        <h1 style="color: white; text-align: center;">🕐 Critical Transit Timeline</h1>
+    </div>
+    """, unsafe_allow_html=True)
     
     if st.session_state.timeline_data:
-        # Find current hora
-        now = datetime.datetime.now()
-        current_time_str = now.strftime("%I:%M %p").upper().replace(" ", "")
+        # Create a vertical timeline layout
+        st.markdown('<div class="timeline-line"></div>', unsafe_allow_html=True)
         
-        # Display timeline in organized format
+        now = datetime.datetime.now()
+        
         for i, item in enumerate(st.session_state.timeline_data):
-            # Create container for each timeline item
-            with st.container():
-                col1, col2, col3, col4 = st.columns([3, 2, 1, 1])
-                
-                with col1:
-                    # Check if current hora
-                    item_time_str = item["Time"].replace(" ", "").upper()
-                    is_current = False
-                    
-                    try:
-                        item_time = datetime.datetime.strptime(item["Time"], "%I:%M %p").time()
-                        if i < len(st.session_state.timeline_data) - 1:
-                            next_time = datetime.datetime.strptime(st.session_state.timeline_data[i+1]["Time"], "%I:%M %p").time()
-                            is_current = item_time <= now.time() < next_time
-                        else:
-                            is_current = item_time <= now.time()
-                    except:
-                        pass
-                    
-                    if is_current:
-                        st.error(f"🔥 **{item['Time']} - {item['Hora Lord']} Hora (CURRENT)**")
-                    else:
-                        st.write(f"**{item['Time']} - {item['Hora Lord']} Hora**")
-                    
-                    st.caption(f"**Influence:** {item['Influence']}")
-                    st.caption(f"**Score:** {item['Score']:.1f}")
-                
-                with col2:
-                    sentiment = item['Sentiment']
-                    if sentiment == "Very Bullish":
-                        st.success(f"🚀 {sentiment}")
-                    elif sentiment == "Bullish":
-                        st.success(f"📈 {sentiment}")
-                    elif sentiment == "Very Bearish":
-                        st.error(f"📉 {sentiment}")
-                    elif sentiment == "Bearish":
-                        st.error(f"🔻 {sentiment}")
-                    else:
-                        st.warning(f"⚖️ {sentiment}")
-                
-                with col3:
-                    action = item['Action']
-                    if action == "BUY":
-                        st.success(f"✅ {action}")
-                    elif action == "SELL":
-                        st.error(f"❌ {action}")
-                    else:
-                        st.warning(f"⏸️ {action}")
-                
-                with col4:
-                    if item['Score'] > 1:
-                        st.success("LONG")
-                    elif item['Score'] < -1:
-                        st.error("SHORT")
-                    else:
-                        st.warning("WAIT")
-                
-                st.divider()
+            # Determine if current hora
+            is_current = False
+            try:
+                item_time = datetime.datetime.strptime(item["Time"], "%I:%M %p").time()
+                if i < len(st.session_state.timeline_data) - 1:
+                    next_time = datetime.datetime.strptime(st.session_state.timeline_data[i+1]["Time"], "%I:%M %p").time()
+                    is_current = item_time <= now.time() < next_time
+                else:
+                    is_current = item_time <= now.time()
+            except:
+                pass
+            
+            # Card styling based on sentiment
+            if item['Sentiment'] in ["Very Bullish", "Bullish"]:
+                card_class = "bullish-card"
+            elif item['Sentiment'] in ["Very Bearish", "Bearish"]:
+                card_class = "bearish-card"
+            else:
+                card_class = "neutral-card"
+            
+            if is_current:
+                card_class += " pulse"
+            
+            st.markdown(f"""
+            <div class="timeline-item">
+                <div class="card {card_class}">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3>{item['Time']} - {item['Hora Lord']} Hora</h3>
+                            <p><strong>Influence:</strong> {item['Influence']}</p>
+                            <p><strong>Score:</strong> {item['Score']:.1f}</p>
+                        </div>
+                        <div style="text-align: center;">
+                            <h4 style="color: {'#16a34a' if item['Sentiment'] in ['Very Bullish', 'Bullish'] else '#dc2626' if item['Sentiment'] in ['Very Bearish', 'Bearish'] else '#f59e0b'};">
+                                {item['Sentiment']}
+                            </h4>
+                            <p style="font-size: 1.5rem; font-weight: bold; margin: 0;">
+                                {item['Action']}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
     else:
         st.warning("No timeline data available. Please update parameters.")
+
 with tab2:
-    st.header("🪐 Planetary Positions & Strengths")
+    st.markdown("""
+    <div class="tab2-theme">
+        <h1 style="color: white; text-align: center;">🪐 Planetary Positions & Strengths</h1>
+    </div>
+    """, unsafe_allow_html=True)
     
     if st.session_state.planetary_data:
-        # Display planetary positions
-        col1, col2 = st.columns(2)
+        # Create a circular layout for planets
+        st.markdown("""
+        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; margin: 20px 0;">
+        """, unsafe_allow_html=True)
         
-        with col1:
-            st.subheader("🌟 Planetary Positions")
-            for planet in st.session_state.planetary_data[:5]:  # First 5 planets
-                with st.container():
-                    st.write(f"**{planet['Planet']}** - {planet['Degree']} in **{planet['Sign']}**")
-                    st.caption(f"Nakshatra: {planet['Nakshatra']}")
-                    
-                    strength = planet['Strength']
-                    if strength == "Exalted":
-                        st.success(f"✨ {strength}")
-                    elif strength == "Own Sign":
-                        st.info(f"🏠 {strength}")
-                    elif strength == "Debilitated":
-                        st.error(f"⚠️ {strength}")
-                    else:
-                        st.warning(f"⚖️ {strength}")
-                    st.divider()
+        for planet in st.session_state.planetary_data:
+            strength_color = {
+                "Exalted": "#16a34a",
+                "Own Sign": "#3b82f6",
+                "Debilitated": "#dc2626",
+                "Neutral": "#f59e0b"
+            }.get(planet['Strength'], "#6b7280")
+            
+            st.markdown(f"""
+            <div class="planet-card">
+                <h3 style="color: {strength_color};">{planet['Planet']}</h3>
+                <p><strong>Position:</strong> {planet['Degree']} in {planet['Sign']}</p>
+                <p><strong>Nakshatra:</strong> {planet['Nakshatra']}</p>
+                <p style="color: {strength_color}; font-weight: bold;">{planet['Strength']}</p>
+            </div>
+            """, unsafe_allow_html=True)
         
-        with col2:
-            st.subheader("🌟 Planetary Positions")
-            for planet in st.session_state.planetary_data[5:]:  # Remaining planets
-                with st.container():
-                    st.write(f"**{planet['Planet']}** - {planet['Degree']} in **{planet['Sign']}**")
-                    st.caption(f"Nakshatra: {planet['Nakshatra']}")
-                    
-                    strength = planet['Strength']
-                    if strength == "Exalted":
-                        st.success(f"✨ {strength}")
-                    elif strength == "Own Sign":
-                        st.info(f"🏠 {strength}")
-                    elif strength == "Debilitated":
-                        st.error(f"⚠️ {strength}")
-                    else:
-                        st.warning(f"⚖️ {strength}")
-                    st.divider()
-    
-    # Display aspects
-    if st.session_state.aspects:
-        st.subheader("⚡ Active Planetary Aspects")
-        aspects_df = pd.DataFrame(st.session_state.aspects[:15])  # Show top 15
-        st.dataframe(aspects_df, use_container_width=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+        
+        # Create a 3D scatter plot for planet positions
+        fig = go.Figure()
+        
+        planet_colors = {
+            "Sun": "#FDB813", "Moon": "#C4C4C4", "Mercury": "#8C7853", 
+            "Venus": "#FFC649", "Mars": "#CD5C5C", "Jupiter": "#D8CA9D",
+            "Saturn": "#FAD5A5", "Rahu": "#4B0082", "Ketu": "#8B0000"
+        }
+        
+        for planet in st.session_state.planetary_data:
+            degree = float(planet['Degree'].split('°')[0]) + float(planet['Degree'].split('°')[1].replace("'", '')) / 60
+            rad = math.radians(degree)
+            
+            fig.add_trace(go.Scatter3d(
+                x=[math.cos(rad)],
+                y=[math.sin(rad)],
+                z=[0],
+                mode='markers+text',
+                marker=dict(size=15, color=planet_colors.get(planet['Planet'], '#666')),
+                text=planet['Planet'],
+                textposition="top center",
+                name=planet['Planet']
+            ))
+        
+        fig.update_layout(
+            title="3D Planetary Positions",
+            scene=dict(
+                xaxis=dict(title='X'),
+                yaxis=dict(title='Y'),
+                zaxis=dict(title='Z'),
+                camera=dict(eye=dict(x=1.5, y=1.5, z=1.5))
+            ),
+            height=500
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Display aspects in a table
+        if st.session_state.aspects:
+            st.subheader("⚡ Active Planetary Aspects")
+            aspects_df = pd.DataFrame(st.session_state.aspects[:15])
+            st.dataframe(aspects_df, use_container_width=True)
     else:
-        st.info("No significant aspects found for this date.")
+        st.info("No planetary data available. Please update parameters.")
+
 with tab3:
-    st.header("⚡ Dynamic Trading Strategy")
+    st.markdown("""
+    <div class="tab3-theme">
+        <h1 style="color: white; text-align: center;">⚡ Dynamic Trading Strategy</h1>
+    </div>
+    """, unsafe_allow_html=True)
     
     if st.session_state.sentiment_data:
         sentiment_data = st.session_state.sentiment_data
         date_str = date.strftime("%d %B %Y (%A)")
         
-        # Strategy overview
-        st.subheader(f"🎯 Strategy for {symbol} on {date_str}")
-        
+        # Strategy overview with cards
         col1, col2 = st.columns(2)
         
         with col1:
-            st.subheader("📊 Sentiment Breakdown")
+            st.markdown("""
+            <div class="strategy-card">
+                <h3>📊 Sentiment Breakdown</h3>
+            </div>
+            """, unsafe_allow_html=True)
+            
             for factor in sentiment_data["sentiment_factors"][:10]:
-                st.write(f"• {factor}")
+                st.markdown(f"""
+                <div class="card">
+                    <p>• {factor}</p>
+                </div>
+                """, unsafe_allow_html=True)
         
         with col2:
-            st.subheader("⏰ Trading Windows Summary")
+            st.markdown("""
+            <div class="strategy-card">
+                <h3>⏰ Trading Windows Summary</h3>
+            </div>
+            """, unsafe_allow_html=True)
             
             if st.session_state.timeline_data:
                 bullish_count = sum(1 for item in st.session_state.timeline_data if item['Score'] > 1)
                 bearish_count = sum(1 for item in st.session_state.timeline_data if item['Score'] < -1)
                 neutral_count = len(st.session_state.timeline_data) - bullish_count - bearish_count
                 
-                st.metric("🚀 Bullish Opportunities", bullish_count)
-                st.metric("📉 Bearish Periods", bearish_count)
-                st.metric("⚖️ Neutral Periods", neutral_count)
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.markdown(f"""
+                    <div class="card bullish-card">
+                        <h4>🚀 Bullish Opportunities</h4>
+                        <p style="font-size: 2rem; font-weight: bold;">{bullish_count}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col2:
+                    st.markdown(f"""
+                    <div class="card bearish-card">
+                        <h4>📉 Bearish Periods</h4>
+                        <p style="font-size: 2rem; font-weight: bold;">{bearish_count}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                with col3:
+                    st.markdown(f"""
+                    <div class="card neutral-card">
+                        <h4>⚖️ Neutral Periods</h4>
+                        <p style="font-size: 2rem; font-weight: bold;">{neutral_count}</p>
+                    </div>
+                    """, unsafe_allow_html=True)
         
-        # Best opportunities
+        # Best opportunities section
         if st.session_state.timeline_data:
             best_entries = [item for item in st.session_state.timeline_data if item['Score'] >= 1.5]
             avoid_periods = [item for item in st.session_state.timeline_data if item['Score'] <= -1.5]
             
             if best_entries:
-                st.subheader("🚀 Best Entry Opportunities")
+                st.markdown("""
+                <div class="strategy-card">
+                    <h3>🚀 Best Entry Opportunities</h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
                 for entry in best_entries[:3]:
                     target = f"{1.2 + entry['Score'] * 0.3:.1f}%"
-                    st.success(f"**⏰ {entry['Time']} - {entry['Hora Lord']} Hora**")
-                    st.write(f"Action: Strong Buy | Target: {target} | Stop: 0.5%")
-                    st.caption(f"Reason: {entry['Influence'][:100]}...")
-                    st.divider()
+                    st.markdown(f"""
+                    <div class="card bullish-card">
+                        <h4>⏰ {entry['Time']} - {entry['Hora Lord']} Hora</h4>
+                        <p><strong>Action:</strong> Strong Buy</p>
+                        <p><strong>Target:</strong> {target}</p>
+                        <p><strong>Stop:</strong> 0.5%</p>
+                        <p><strong>Reason:</strong> {entry['Influence'][:100]}...</p>
+                    </div>
+                    """, unsafe_allow_html=True)
             
             if avoid_periods:
-                st.subheader("⚠️ Periods to Avoid/Short")
+                st.markdown("""
+                <div class="strategy-card">
+                    <h3>⚠️ Periods to Avoid/Short</h3>
+                </div>
+                """, unsafe_allow_html=True)
+                
                 for avoid in avoid_periods[:3]:
-                    st.error(f"**⏰ {avoid['Time']} - {avoid['Hora Lord']} Hora**")
-                    st.write("Action: Avoid/Short")
-                    st.caption(f"Reason: {avoid['Influence'][:100]}...")
-                    st.divider()
+                    st.markdown(f"""
+                    <div class="card bearish-card">
+                        <h4>⏰ {avoid['Time']} - {avoid['Hora Lord']} Hora</h4>
+                        <p><strong>Action:</strong> Avoid/Short</p>
+                        <p><strong>Reason:</strong> {avoid['Influence'][:100]}...</p>
+                    </div>
+                    """, unsafe_allow_html=True)
         
         # Symbol-specific analysis
-        st.subheader(f"📈 {symbol}-Specific Analysis")
+        st.markdown(f"""
+        <div class="strategy-card">
+            <h3>📈 {symbol}-Specific Analysis</h3>
+        </div>
+        """, unsafe_allow_html=True)
         
         col1, col2 = st.columns(2)
         
@@ -741,61 +1003,105 @@ with tab3:
             if symbol.upper() == "NIFTY":
                 jupiter_degree = st.session_state.planetary_degrees.get('Jupiter', 0)
                 saturn_degree = st.session_state.planetary_degrees.get('Saturn', 0)
-                st.write(f"• **Support:** Jupiter at {jupiter_degree:.0f}°")
-                st.write(f"• **Resistance:** Saturn at {saturn_degree:.0f}°")
-                st.write(f"• **Breakout Potential:** {'High' if sentiment_data['sentiment_score'] > 2 else 'Moderate' if sentiment_data['sentiment_score'] > 0 else 'Low'}")
+                st.markdown(f"""
+                <div class="card">
+                    <p><strong>Support:</strong> Jupiter at {jupiter_degree:.0f}°</p>
+                    <p><strong>Resistance:</strong> Saturn at {saturn_degree:.0f}°</p>
+                    <p><strong>Breakout Potential:</strong> {'High' if sentiment_data['sentiment_score'] > 2 else 'Moderate' if sentiment_data['sentiment_score'] > 0 else 'Low'}</p>
+                </div>
+                """, unsafe_allow_html=True)
                 
             elif symbol.upper() == "BANKNIFTY":
                 mars_degree = st.session_state.planetary_degrees.get("Mars", 0)
                 mars_sign = get_sign_from_degree(mars_degree)
                 mars_strength = get_planet_strength("Mars", mars_sign)
-                st.write(f"• **Mars Influence:** {mars_degree:.0f}° in {mars_sign} - {mars_strength}")
-                st.write(f"• **Banking Sentiment:** {'Positive' if sentiment_data['sentiment_score'] > 1 else 'Negative' if sentiment_data['sentiment_score'] < -1 else 'Mixed'}")
+                st.markdown(f"""
+                <div class="card">
+                    <p><strong>Mars Influence:</strong> {mars_degree:.0f}° in {mars_sign} - {mars_strength}</p>
+                    <p><strong>Banking Sentiment:</strong> {'Positive' if sentiment_data['sentiment_score'] > 1 else 'Negative' if sentiment_data['sentiment_score'] < -1 else 'Mixed'}</p>
+                </div>
+                """, unsafe_allow_html=True)
         
         with col2:
-            st.subheader("🛡️ Risk Management")
-            st.write(f"• **Position Size:** {'Conservative (10-15%)' if abs(sentiment_data['sentiment_score']) > 3 else 'Moderate (15-20%)' if abs(sentiment_data['sentiment_score']) > 1 else 'Normal (20-25%)'}")
-            st.write("• **Stop-Loss:** 0.5% intraday, 1% swing")
-            st.write("• **Max Daily Loss:** 2% of capital")
+            st.markdown("""
+            <div class="card">
+                <h3>🛡️ Risk Management</h3>
+                <p><strong>Position Size:</strong> {'Conservative (10-15%)' if abs(sentiment_data['sentiment_score']) > 3 else 'Moderate (15-20%)' if abs(sentiment_data['sentiment_score']) > 1 else 'Normal (20-25%)'}</p>
+                <p><strong>Stop-Loss:</strong> 0.5% intraday, 1% swing</p>
+                <p><strong>Max Daily Loss:</strong> 2% of capital</p>
+            </div>
+            """, unsafe_allow_html=True)
+
 with tab4:
-    st.header("🔮 Multi-day Forecast")
+    st.markdown("""
+    <div class="tab4-theme">
+        <h1 style="color: white; text-align: center;">🔮 Multi-day Forecast</h1>
+    </div>
+    """, unsafe_allow_html=True)
     
     if st.session_state.forecast_data:
-        # Display forecast in organized format
+        # Create a calendar-like layout
         col1, col2 = st.columns(2)
         
         for i, forecast in enumerate(st.session_state.forecast_data):
             current_col = col1 if i % 2 == 0 else col2
             
-            with current_col:
-                with st.container():
-                    if forecast["Is Today"]:
-                        st.error(f"🎯 **{forecast['Date']} ({forecast['Day']}) - TODAY**")
-                    else:
-                        st.write(f"**{forecast['Date']} ({forecast['Day']})**")
-                    
-                    sentiment = forecast['Sentiment']
-                    if "Bullish" in sentiment:
-                        st.success(f"📈 {sentiment}")
-                    elif "Bearish" in sentiment:
-                        st.error(f"📉 {sentiment}")
-                    else:
-                        st.warning(f"⚖️ {sentiment}")
-                    
-                    st.caption(f"Score: {forecast['Score']:.1f} | Aspects: {forecast['Aspects']}")
-                    
-                    recommendation = "Long bias" if forecast['Score'] > 1 else "Short bias" if forecast['Score'] < -1 else "Neutral"
-                    st.caption(f"**Recommendation:** {recommendation}")
-                    
-                    st.divider()
+            sentiment_color = {
+                "Extremely Bullish": "#16a34a",
+                "Very Bullish": "#22c55e",
+                "Bullish": "#4ade80",
+                "Neutral": "#f59e0b",
+                "Bearish": "#f97316",
+                "Very Bearish": "#ef4444",
+                "Extremely Bearish": "#dc2626"
+            }.get(forecast['Sentiment'], "#6b7280")
+            
+            if forecast["Is Today"]:
+                border_style = "border: 3px solid #e94560;"
+            else:
+                border_style = ""
+            
+            current_col.markdown(f"""
+            <div class="forecast-card" style="{border_style}">
+                <h3 style="color: {sentiment_color};">{'🎯 ' if forecast['Is Today'] else ''}{forecast['Date']} ({forecast['Day']})</h3>
+                <p><strong>Sentiment:</strong> <span style="color: {sentiment_color}; font-weight: bold;">{forecast['Sentiment']}</span></p>
+                <p><strong>Score:</strong> {forecast['Score']:.1f}</p>
+                <p><strong>Aspects:</strong> {forecast['Aspects']}</p>
+                <p><strong>Recommendation:</strong> {'Long bias' if forecast['Score'] > 1 else 'Short bias' if forecast['Score'] < -1 else 'Neutral'}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Create a line chart for forecast scores
+        forecast_df = pd.DataFrame(st.session_state.forecast_data)
+        fig = px.line(forecast_df, x='Date', y='Score', 
+                      title='7-Day Sentiment Forecast',
+                      labels={'Score': 'Sentiment Score', 'Date': 'Date'},
+                      line_shape='linear')
+        
+        # Add horizontal lines for sentiment thresholds
+        fig.add_hline(y=4, line_dash="dash", line_color="green", annotation_text="Extremely Bullish")
+        fig.add_hline(y=2, line_dash="dash", line_color="lightgreen", annotation_text="Very Bullish")
+        fig.add_hline(y=0.5, line_dash="dash", line_color="yellow", annotation_text="Bullish")
+        fig.add_hline(y=-0.5, line_dash="dash", line_color="orange", annotation_text="Bearish")
+        fig.add_hline(y=-2, line_dash="dash", line_color="red", annotation_text="Very Bearish")
+        fig.add_hline(y=-4, line_dash="dash", line_color="darkred", annotation_text="Extremely Bearish")
+        
+        fig.update_layout(height=400)
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("No forecast data available. Please update parameters.")
+
 with tab5:
-    st.header("📅 Planetary Aspects Timeline")
+    st.markdown("""
+    <div class="tab5-theme">
+        <h1 style="color: white; text-align: center;">📅 Planetary Aspects Timeline</h1>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Check if date is August 6, 2025
     if date != datetime.date(2025, 8, 6):
         st.warning("⚠️ Detailed aspects timeline is only available for August 6, 2025. Please select this date to view the complete timeline.")
     else:
-        # Symbol selection
+        # Symbol selection with enhanced styling
         symbol_options = ["Nifty", "BankNifty", "Gold", "Silver", "Crude", "BTC", "DowJones"]
         selected_symbol = st.selectbox("🔍 Select Symbol for Timeline View", symbol_options)
         
@@ -808,7 +1114,6 @@ with tab5:
         # Prepare aspects data for display
         aspects_display = []
         for aspect in aug6_aspects:
-            # Parse time
             time_str = aspect["time"]
             hour_min = time_str.replace(" am", "").replace(" pm", "")
             hour, minute = map(int, hour_min.split(":"))
@@ -816,7 +1121,6 @@ with tab5:
                 hour += 12
             aspect_time = datetime.time(hour, minute)
             
-            # Determine market status
             market_status = ""
             if indian_market_open <= aspect_time <= indian_market_close:
                 market_status = "🇮🇳 Indian Market Open"
@@ -825,7 +1129,6 @@ with tab5:
             else:
                 market_status = "⚫ Closed"
             
-            # Get impact for selected symbol
             if selected_symbol in ["Nifty", "BankNifty"]:
                 impact = aspect["indian_market"]
             elif selected_symbol in ["Gold", "Silver", "Crude"]:
@@ -845,97 +1148,63 @@ with tab5:
                 "Market Status": market_status
             })
         
-        # Display aspects table
+        # Display aspects in a timeline layout
         st.subheader(f"Planetary Aspects for {selected_symbol} - August 6, 2025")
         
-        # Create DataFrame with styling
-        df = pd.DataFrame(aspects_display)
+        for aspect in aspects_display:
+            impact_color = {
+                "Bullish": "#16a34a",
+                "Bearish": "#dc2626",
+                "Neutral": "#f59e0b"
+            }.get(aspect["Impact"].split()[0] if aspect["Impact"].split()[0] in ["Bullish", "Bearish"] else "Neutral", "#6b7280")
+            
+            st.markdown(f"""
+            <div class="aspect-card">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3>{aspect['Time']} - {aspect['Aspect']}</h3>
+                        <p><strong>Meaning:</strong> {aspect['Meaning']}</p>
+                        <p><strong>Market Status:</strong> {aspect['Market Status']}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <h4 style="color: {impact_color};">{aspect['Impact']}</h4>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
         
-        # Style the DataFrame
-        def highlight_impact(val):
-            color = ''
-            if "Bullish" in val or "recovery" in val.lower() or "rally" in val.lower():
-                color = 'background-color: #d4edda; color: #155724'
-            elif "Bearish" in val or "dip" in val.lower() or "pressure" in val.lower() or "risks" in val.lower():
-                color = 'background-color: #f8d7da; color: #721c24'
-            else:
-                color = 'background-color: #fff3cd; color: #856404'
-            return color
+        # Create a heatmap of aspects
+        st.subheader("📊 Aspect Impact Heatmap")
         
-        styled_df = df.style.applymap(highlight_impact, subset=['Impact'])
-        
-        # Display the styled table
-        st.dataframe(styled_df, use_container_width=True)
-        
-        # Create a visual timeline
-        st.subheader("📊 Visual Timeline")
-        
-        # Prepare data for timeline visualization
-        timeline_viz = []
+        # Prepare data for heatmap
+        heatmap_data = []
         for aspect in aspects_display:
             impact = aspect["Impact"]
-            
-            # Determine sentiment
-            if "Bullish" in impact or "recovery" in impact.lower() or "rally" in impact.lower():
-                sentiment = "Bullish"
-            elif "Bearish" in impact or "dip" in impact.lower() or "pressure" in impact.lower() or "risks" in impact.lower():
-                sentiment = "Bearish"
+            if "Bullish" in impact:
+                score = 1
+            elif "Bearish" in impact:
+                score = -1
             else:
-                sentiment = "Neutral"
+                score = 0
             
-            timeline_viz.append({
-                "Time": aspect_time.strftime("%H:%M"),
-                "Aspect": aspect["Aspect"].split(" (")[0],
-                "Sentiment": sentiment,
-                "Impact": impact
+            heatmap_data.append({
+                "Time": aspect["Time"],
+                "Impact": score,
+                "Aspect": aspect["Aspect"].split(" (")[0]
             })
         
-        # Sort by time
-        timeline_viz.sort(key=lambda x: x["Time"])
+        heatmap_df = pd.DataFrame(heatmap_data)
         
-        # Create timeline chart
-        fig = go.Figure()
-        
-        # Add Indian market hours background
-        fig.add_vrect(
-            x0="9:15", x1="15:30",
-            fillcolor="LightGreen", opacity=0.2,
-            layer="below", line_width=0,
-            annotation_text="Indian Market Hours"
+        fig = px.density_heatmap(
+            heatmap_df, 
+            x="Time", 
+            y="Aspect", 
+            z="Impact",
+            color_continuous_scale=["red", "yellow", "green"],
+            title="Aspect Impact Heatmap"
         )
         
-        # Add global market hours background
-        fig.add_vrect(
-            x0="5:00", x1="23:55",
-            fillcolor="LightBlue", opacity=0.1,
-            layer="below", line_width=0,
-            annotation_text="Global Market Hours"
-        )
-        
-        # Add aspects as scatter points
-        colors = {"Bullish": "green", "Bearish": "red", "Neutral": "orange"}
-        
-        for item in timeline_viz:
-            fig.add_trace(go.Scatter(
-                x=[item["Time"]],
-                y=[1],
-                mode="markers+text",
-                marker=dict(size=15, color=colors[item["Sentiment"]]),
-                text=item["Aspect"],
-                textposition="top center",
-                name=item["Aspect"],
-                hovertext=f"<b>{item['Aspect']}</b><br>Sentiment: {item['Sentiment']}<br>Impact: {item['Impact']}",
-                hoverinfo="text"
-            ))
-        
-        fig.update_layout(
-            title=f"Planetary Aspects Timeline for {selected_symbol}",
-            xaxis_title="Time",
-            yaxis=dict(visible=False),
-            height=400,
-            showlegend=False
-        )
-        
+        fig.update_layout(height=400)
         st.plotly_chart(fig, use_container_width=True)
         
         # Summary statistics
@@ -945,48 +1214,59 @@ with tab5:
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.metric("🟢 Bullish Aspects", sentiment_counts.get('Bullish', 0))
+            st.markdown(f"""
+            <div class="card bullish-card">
+                <h4>🟢 Bullish Aspects</h4>
+                <p style="font-size: 2rem; font-weight: bold;">{sentiment_counts.get('Bullish', 0)}</p>
+            </div>
+            """, unsafe_allow_html=True)
         with col2:
-            st.metric("🔴 Bearish Aspects", sentiment_counts.get('Bearish', 0))
+            st.markdown(f"""
+            <div class="card bearish-card">
+                <h4>🔴 Bearish Aspects</h4>
+                <p style="font-size: 2rem; font-weight: bold;">{sentiment_counts.get('Bearish', 0)}</p>
+            </div>
+            """, unsafe_allow_html=True)
         with col3:
-            st.metric("⚪ Neutral Aspects", sentiment_counts.get('Neutral', 0))
-        
-        # Key insights
-        st.subheader("💡 Key Insights for " + selected_symbol)
-        
-        # Get all aspects for the selected symbol
-        symbol_aspects = [aspect for aspect in aspects_display if aspect["Impact"] != "Neutral"]
-        
-        if symbol_aspects:
-            for aspect in symbol_aspects:
-                impact = aspect["Impact"]
-                if "Bullish" in impact or "recovery" in impact.lower() or "rally" in impact.lower():
-                    st.success(f"🟢 **{aspect['Time']} - {aspect['Aspect'].split(' (')[0]}**")
-                    st.write(f"   {impact}")
-                elif "Bearish" in impact or "dip" in impact.lower() or "pressure" in impact.lower() or "risks" in impact.lower():
-                    st.error(f"🔴 **{aspect['Time']} - {aspect['Aspect'].split(' (')[0]}**")
-                    st.write(f"   {impact}")
-        else:
-            st.info("No significant planetary aspects directly affecting this symbol on this date.")
+            st.markdown(f"""
+            <div class="card neutral-card">
+                <h4>⚪ Neutral Aspects</h4>
+                <p style="font-size: 2rem; font-weight: bold;">{sentiment_counts.get('Neutral', 0)}</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-# Footer
-st.markdown("---")
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.caption("🌟 **Dynamic Planetary Trading Dashboard**")
-with col2:
-    st.caption("Real-time Astro-Financial Intelligence")
-with col3:
-    if st.session_state.last_update:
-        st.caption(f"Last Updated: {st.session_state.last_update.strftime('%H:%M:%S')}")
-# Display current parameters
+# Footer with enhanced styling
+st.markdown("""
+<hr>
+<div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 0;">
+    <div>
+        <p>🌟 <strong>Dynamic Planetary Trading Dashboard</strong></p>
+        <p>Real-time Astro-Financial Intelligence</p>
+    </div>
+    <div style="text-align: right;">
+        <p>Last Updated: {}</p>
+    </div>
+</div>
+""".format(st.session_state.last_update.strftime('%H:%M:%S') if st.session_state.last_update else "N/A"), unsafe_allow_html=True)
+
+# Enhanced sidebar parameters
 st.sidebar.markdown("---")
-st.sidebar.subheader("📋 Current Parameters")
-st.sidebar.write(f"**Date:** {date.strftime('%d %B %Y')}")
-st.sidebar.write(f"**Symbol:** {symbol}")
-st.sidebar.write(f"**Location:** {city}")
+st.sidebar.markdown("""
+<div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; color: white;">
+    <h4>📋 Current Parameters</h4>
+    <p><strong>Date:</strong> {}</p>
+    <p><strong>Symbol:</strong> {}</p>
+    <p><strong>Location:</strong> {}</p>
+</div>
+""".format(date.strftime('%d %B %Y'), symbol, city), unsafe_allow_html=True)
+
 if st.session_state.sentiment_data:
     sentiment = st.session_state.sentiment_data["sentiment"]
     score = st.session_state.sentiment_data["sentiment_score"]
-    st.sidebar.write(f"**Current Sentiment:** {sentiment}")
-    st.sidebar.write(f"**Sentiment Score:** {score:.1f}")
+    st.sidebar.markdown(f"""
+    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; color: white; margin-top: 10px;">
+        <h4>📊 Current Sentiment</h4>
+        <p><strong>Sentiment:</strong> {sentiment}</p>
+        <p><strong>Score:</strong> {score:.1f}</p>
+    </div>
+    """, unsafe_allow_html=True)
