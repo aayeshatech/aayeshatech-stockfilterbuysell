@@ -303,6 +303,84 @@ aug6_aspects = [
     }
 ]
 
+# Function to generate aspects for any date
+def generate_aspects_for_date(date):
+    """Generate aspects for any given date based on planetary positions"""
+    # Calculate planetary positions for the date
+    degrees = calculate_dynamic_planetary_positions(date)
+    
+    # Calculate aspects
+    aspects = calculate_dynamic_aspects(degrees)
+    
+    # Generate time stamps throughout the day
+    times = [
+        "02:06 am", "02:34 am", "02:38 am", "04:38 am", "10:25 am", 
+        "01:39 pm", "04:53 pm", "05:10 pm", "07:35 pm", "09:18 pm"
+    ]
+    
+    # Create aspect data with market impacts
+    aspect_data = []
+    
+    for i, time_str in enumerate(times):
+        # Get a random aspect from the calculated aspects
+        if aspects and i < len(aspects):
+            aspect = aspects[i]
+            aspect_name = f"{aspect['Planet 1']} {aspect['Aspect']} {aspect['Planet 2']}"
+            
+            # Determine market impacts based on aspect type
+            if aspect['Aspect'] in ['Trine', 'Sextile']:
+                indian_impact = "Bullish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+                commodities_impact = "Bullish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+                forex_impact = "Bullish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+                global_impact = "Bullish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+            elif aspect['Aspect'] in ['Square', 'Opposition']:
+                indian_impact = "Bearish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+                commodities_impact = "Bearish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+                forex_impact = "Bearish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+                global_impact = "Bearish" if aspect['Strength'] in ['Exact', 'Close'] else "Neutral"
+            else:
+                indian_impact = "Neutral"
+                commodities_impact = "Neutral"
+                forex_impact = "Neutral"
+                global_impact = "Neutral"
+            
+            # Create meaning based on aspect
+            if aspect['Aspect'] == 'Conjunction':
+                meaning = "Planets joining energies, new beginnings"
+            elif aspect['Aspect'] == 'Trine':
+                meaning = "Harmonious flow, favorable conditions"
+            elif aspect['Aspect'] == 'Square':
+                meaning = "Tension, challenges, need for action"
+            elif aspect['Aspect'] == 'Opposition':
+                meaning = "Polarity, balance, relationship focus"
+            elif aspect['Aspect'] == 'Sextile':
+                meaning = "Opportunities, positive connections"
+            else:
+                meaning = "Planetary interaction"
+            
+            aspect_data.append({
+                "time": time_str,
+                "aspect": aspect_name,
+                "meaning": meaning,
+                "indian_market": indian_impact,
+                "commodities": commodities_impact,
+                "forex": forex_impact,
+                "global_market": global_impact
+            })
+        else:
+            # If no aspects available, use default data
+            aspect_data.append({
+                "time": time_str,
+                "aspect": "No significant aspects",
+                "meaning": "Normal planetary motion",
+                "indian_market": "Neutral",
+                "commodities": "Neutral",
+                "forex": "Neutral",
+                "global_market": "Neutral"
+            })
+    
+    return aspect_data
+
 # Initialize session state with proper defaults
 def initialize_session_state():
     defaults = {
@@ -314,7 +392,8 @@ def initialize_session_state():
         'aspects': [],
         'sentiment_data': {},
         'forecast_data': [],
-        'last_update': None
+        'last_update': None,
+        'aspects_data': []
     }
     
     for key, value in defaults.items():
@@ -622,6 +701,12 @@ def update_all_data(date, symbol):
             "sentiment_score": sentiment_score,
             "sentiment_factors": sentiment_factors
         }
+        
+        # Generate aspects data for the selected date
+        if date == datetime.date(2025, 8, 6):
+            st.session_state.aspects_data = aug6_aspects
+        else:
+            st.session_state.aspects_data = generate_aspects_for_date(date)
         
         forecast_data = []
         for i in range(-3, 4):
@@ -1098,142 +1183,142 @@ with tab5:
     </div>
     """, unsafe_allow_html=True)
     
-    if date != datetime.date(2025, 8, 6):
-        st.warning("⚠️ Detailed aspects timeline is only available for August 6, 2025. Please select this date to view the complete timeline.")
-    else:
-        # Symbol selection with enhanced styling
-        symbol_options = ["Nifty", "BankNifty", "Gold", "Silver", "Crude", "BTC", "DowJones"]
-        selected_symbol = st.selectbox("🔍 Select Symbol for Timeline View", symbol_options)
+    # Symbol selection with enhanced styling
+    symbol_options = ["Nifty", "BankNifty", "Gold", "Silver", "Crude", "BTC", "DowJones"]
+    selected_symbol = st.selectbox("🔍 Select Symbol for Timeline View", symbol_options)
+    
+    # Define market hours
+    indian_market_open = datetime.time(9, 15)
+    indian_market_close = datetime.time(15, 30)
+    global_market_open = datetime.time(5, 0)
+    global_market_close = datetime.time(23, 55)
+    
+    # Prepare aspects data for display
+    aspects_display = []
+    for aspect in st.session_state.aspects_data:
+        time_str = aspect["time"]
+        hour_min = time_str.replace(" am", "").replace(" pm", "")
+        hour, minute = map(int, hour_min.split(":"))
+        if "pm" in time_str and hour != 12:
+            hour += 12
+        aspect_time = datetime.time(hour, minute)
         
-        # Define market hours
-        indian_market_open = datetime.time(9, 15)
-        indian_market_close = datetime.time(15, 30)
-        global_market_open = datetime.time(5, 0)
-        global_market_close = datetime.time(23, 55)
+        market_status = ""
+        if indian_market_open <= aspect_time <= indian_market_close:
+            market_status = "🇮🇳 Indian Market Open"
+        elif global_market_open <= aspect_time <= global_market_close:
+            market_status = "🌍 Global Market Open"
+        else:
+            market_status = "⚫ Closed"
         
-        # Prepare aspects data for display
-        aspects_display = []
-        for aspect in aug6_aspects:
-            time_str = aspect["time"]
-            hour_min = time_str.replace(" am", "").replace(" pm", "")
-            hour, minute = map(int, hour_min.split(":"))
-            if "pm" in time_str and hour != 12:
-                hour += 12
-            aspect_time = datetime.time(hour, minute)
-            
-            market_status = ""
-            if indian_market_open <= aspect_time <= indian_market_close:
-                market_status = "🇮🇳 Indian Market Open"
-            elif global_market_open <= aspect_time <= global_market_close:
-                market_status = "🌍 Global Market Open"
-            else:
-                market_status = "⚫ Closed"
-            
-            if selected_symbol in ["Nifty", "BankNifty"]:
-                impact = aspect["indian_market"]
-            elif selected_symbol in ["Gold", "Silver", "Crude"]:
-                impact = aspect["commodities"]
-            elif selected_symbol == "BTC":
-                impact = aspect["forex"]
-            elif selected_symbol == "DowJones":
-                impact = aspect["global_market"]
-            else:
-                impact = "Neutral"
-            
-            aspects_display.append({
-                "Time": aspect["time"],
-                "Aspect": aspect["aspect"],
-                "Meaning": aspect["meaning"],
-                "Impact": impact,
-                "Market Status": market_status
-            })
+        if selected_symbol in ["Nifty", "BankNifty"]:
+            impact = aspect["indian_market"]
+        elif selected_symbol in ["Gold", "Silver", "Crude"]:
+            impact = aspect["commodities"]
+        elif selected_symbol == "BTC":
+            impact = aspect["forex"]
+        elif selected_symbol == "DowJones":
+            impact = aspect["global_market"]
+        else:
+            impact = "Neutral"
         
-        # Display aspects in a timeline layout
-        st.subheader(f"Planetary Aspects for {selected_symbol} - August 6, 2025")
+        aspects_display.append({
+            "Time": aspect["time"],
+            "Aspect": aspect["aspect"],
+            "Meaning": aspect["meaning"],
+            "Impact": impact,
+            "Market Status": market_status
+        })
+    
+    # Display aspects in a timeline layout
+    st.subheader(f"Planetary Aspects for {selected_symbol} - {date.strftime('%d %B %Y')}")
+    
+    for aspect in aspects_display:
+        impact_color = {
+            "Bullish": "#16a34a",
+            "Bearish": "#dc2626",
+            "Neutral": "#f59e0b"
+        }.get(aspect["Impact"].split()[0] if aspect["Impact"].split()[0] in ["Bullish", "Bearish"] else "Neutral", "#6b7280")
         
-        for aspect in aspects_display:
-            impact_color = {
-                "Bullish": "#16a34a",
-                "Bearish": "#dc2626",
-                "Neutral": "#f59e0b"
-            }.get(aspect["Impact"].split()[0] if aspect["Impact"].split()[0] in ["Bullish", "Bearish"] else "Neutral", "#6b7280")
-            
-            st.markdown(f"""
-            <div class="aspect-card">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <h3>{aspect['Time']} - {aspect['Aspect']}</h3>
-                        <p><strong>Meaning:</strong> {aspect['Meaning']}</p>
-                        <p><strong>Market Status:</strong> {aspect['Market Status']}</p>
-                    </div>
-                    <div style="text-align: right;">
-                        <h4 style="color: {impact_color};">{aspect['Impact']}</h4>
-                    </div>
+        st.markdown(f"""
+        <div class="aspect-card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3>{aspect['Time']} - {aspect['Aspect']}</h3>
+                    <p><strong>Meaning:</strong> {aspect['Meaning']}</p>
+                    <p><strong>Market Status:</strong> {aspect['Market Status']}</p>
+                </div>
+                <div style="text-align: right;">
+                    <h4 style="color: {impact_color};">{aspect['Impact']}</h4>
                 </div>
             </div>
-            """, unsafe_allow_html=True)
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Create a heatmap of aspects
+    st.subheader("📊 Aspect Impact Heatmap")
+    
+    # Prepare data for heatmap
+    heatmap_data = []
+    for aspect in aspects_display:
+        impact = aspect["Impact"]
+        if "Bullish" in impact:
+            score = 1
+        elif "Bearish" in impact:
+            score = -1
+        else:
+            score = 0
         
-        # Create a heatmap of aspects
-        st.subheader("📊 Aspect Impact Heatmap")
-        
-        # Prepare data for heatmap
-        heatmap_data = []
-        for aspect in aspects_display:
-            impact = aspect["Impact"]
-            if "Bullish" in impact:
-                score = 1
-            elif "Bearish" in impact:
-                score = -1
-            else:
-                score = 0
-            
-            heatmap_data.append({
-                "Time": aspect["Time"],
-                "Impact": score,
-                "Aspect": aspect["Aspect"].split(" (")[0]
-            })
-        
-        heatmap_df = pd.DataFrame(heatmap_data)
-        
-        fig = px.density_heatmap(
-            heatmap_df, 
-            x="Time", 
-            y="Aspect", 
-            z="Impact",
-            color_continuous_scale=["red", "yellow", "green"],
-            title="Aspect Impact Heatmap"
-        )
-        
-        fig.update_layout(height=400)
-        st.plotly_chart(fig, use_container_width=True)
-        
-        # Summary statistics
-        st.subheader("📈 Summary Statistics")
-        
-        sentiment_counts = df['Impact'].apply(lambda x: 'Bullish' if 'Bullish' in x or 'recovery' in x.lower() or 'rally' in x.lower() else ('Bearish' if 'Bearish' in x or 'dip' in x.lower() or 'pressure' in x.lower() or 'risks' in x.lower() else 'Neutral')).value_counts()
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            st.markdown(f"""
-            <div class="card bullish-card">
-                <h4>🟢 Bullish Aspects</h4>
-                <p style="font-size: 2rem; font-weight: bold;">{sentiment_counts.get('Bullish', 0)}</p>
-            </div>
-            """, unsafe_allow_html=True)
-        with col2:
-            st.markdown(f"""
-            <div class="card bearish-card">
-                <h4>🔴 Bearish Aspects</h4>
-                <p style="font-size: 2rem; font-weight: bold;">{sentiment_counts.get('Bearish', 0)}</p>
-            </div>
-            """, unsafe_allow_html=True)
-        with col3:
-            st.markdown(f"""
-            <div class="card neutral-card">
-                <h4>⚪ Neutral Aspects</h4>
-                <p style="font-size: 2rem; font-weight: bold;">{sentiment_counts.get('Neutral', 0)}</p>
-            </div>
-            """, unsafe_allow_html=True)
+        heatmap_data.append({
+            "Time": aspect["Time"],
+            "Impact": score,
+            "Aspect": aspect["Aspect"].split(" (")[0]
+        })
+    
+    heatmap_df = pd.DataFrame(heatmap_data)
+    
+    fig = px.density_heatmap(
+        heatmap_df, 
+        x="Time", 
+        y="Aspect", 
+        z="Impact",
+        color_continuous_scale=["red", "yellow", "green"],
+        title="Aspect Impact Heatmap"
+    )
+    
+    fig.update_layout(height=400)
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Summary statistics
+    st.subheader("📈 Summary Statistics")
+    
+    # Create a DataFrame for sentiment analysis
+    aspects_df = pd.DataFrame(aspects_display)
+    sentiment_counts = aspects_df['Impact'].apply(lambda x: 'Bullish' if 'Bullish' in x or 'recovery' in x.lower() or 'rally' in x.lower() else ('Bearish' if 'Bearish' in x or 'dip' in x.lower() or 'pressure' in x.lower() or 'risks' in x.lower() else 'Neutral')).value_counts()
+    
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown(f"""
+        <div class="card bullish-card">
+            <h4>🟢 Bullish Aspects</h4>
+            <p style="font-size: 2rem; font-weight: bold;">{sentiment_counts.get('Bullish', 0)}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="card bearish-card">
+            <h4>🔴 Bearish Aspects</h4>
+            <p style="font-size: 2rem; font-weight: bold;">{sentiment_counts.get('Bearish', 0)}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with col3:
+        st.markdown(f"""
+        <div class="card neutral-card">
+            <h4>⚪ Neutral Aspects</h4>
+            <p style="font-size: 2rem; font-weight: bold;">{sentiment_counts.get('Neutral', 0)}</p>
+        </div>
+        """, unsafe_allow_html=True)
 
 # Footer with enhanced styling
 st.markdown("""
