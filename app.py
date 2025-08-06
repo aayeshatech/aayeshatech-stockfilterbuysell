@@ -832,9 +832,11 @@ st.sidebar.markdown("""
     <h2>📊 Trading Parameters</h2>
 </div>
 """, unsafe_allow_html=True)
+
 date = st.sidebar.date_input("📅 Select Date", value=st.session_state.current_date)
 symbol = st.sidebar.text_input("💹 Trading Symbol", value=st.session_state.current_symbol)
 city = st.sidebar.text_input("🌍 Location", value="Mumbai")
+
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
 <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; color: white;">
@@ -1494,7 +1496,7 @@ with tab6:
             timeline_df = pd.DataFrame(filtered_aspects)
             
             # Convert date and time to datetime for plotting
-            timeline_df['DateTime'] = pd.to_datetime(timeline_df['Date'] + ' ' + timeline_df['Time'])
+            timeline_df['DateTime'] = pd.to_datetime(timeline_df['Date'] + ' ' + timeline_df['Time'], format='%d %B %Y %I:%M %p')
             
             # Create a color map for impacts
             color_map = {
