@@ -1216,15 +1216,6 @@ with tab4:
         fig.add_hline(y=-2, line_dash="dash", line_color="red", annotation_text="Very Bearish")
         fig.add_hline(y=-4, line_dash="dash", line_color="darkred", annotation_text="Extremely Bearish")
         
-        # Add markers for actual market data dates
-        actual_dates = [d for d in actual_market_data.keys() if d >= datetime.date(2025, 8, 1) and d <= datetime.date(2025, 8, 10)]
-        for actual_date in actual_dates:
-            date_str = actual_date.strftime("%Y-%m-%d")
-            market_data = actual_market_data[actual_date]
-            fig.add_vline(x=date_str, line_width=2, line_dash="dot", 
-                         annotation_text=f"Actual: {market_data['sentiment']}",
-                         line_color="red" if "Bearish" in market_data['sentiment'] else "green")
-        
         fig.update_layout(height=400)
         st.plotly_chart(fig, use_container_width=True)
         
