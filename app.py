@@ -83,6 +83,13 @@ st.markdown("""
         margin: 10px 0;
     }
     
+    .tab6-theme {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        border-radius: 15px;
+        padding: 20px;
+        margin: 10px 0;
+    }
+    
     /* Card styles */
     .card {
         background: rgba(255, 255, 255, 0.9);
@@ -402,7 +409,8 @@ def initialize_session_state():
         'sentiment_data': {},
         'forecast_data': [],
         'last_update': None,
-        'aspects_data': []
+        'aspects_data': [],
+        'filtered_aspects_data': []
     }
     
     for key, value in defaults.items():
@@ -746,6 +754,9 @@ def update_all_data(date, symbol):
         else:
             st.session_state.aspects_data = generate_aspects_for_date(date)
         
+        # Initialize filtered aspects data
+        st.session_state.filtered_aspects_data = st.session_state.aspects_data.copy()
+        
         forecast_data = []
         for i in range(-3, 4):
             forecast_date = date + datetime.timedelta(days=i)
@@ -791,7 +802,6 @@ st.markdown("""
 # Live time display with cards
 current_time = datetime.datetime.now()
 market_status = "OPEN" if 9 <= current_time.hour <= 15 and current_time.weekday() < 5 else "CLOSED"
-
 col1, col2, col3 = st.columns(3)
 with col1:
     st.markdown("""
@@ -822,11 +832,9 @@ st.sidebar.markdown("""
     <h2>📊 Trading Parameters</h2>
 </div>
 """, unsafe_allow_html=True)
-
 date = st.sidebar.date_input("📅 Select Date", value=st.session_state.current_date)
 symbol = st.sidebar.text_input("💹 Trading Symbol", value=st.session_state.current_symbol)
 city = st.sidebar.text_input("🌍 Location", value="Mumbai")
-
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
 <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; color: white;">
@@ -871,7 +879,7 @@ if sentiment_data:
     """, unsafe_allow_html=True)
 
 # Create tabs with dynamic layouts
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["🕐 Transit Timeline", "🪐 Planetary Positions", "⚡ Strategy", "🔮 Forecast", "📅 Aspects Timeline"])
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["🕐 Transit Timeline", "🪐 Planetary Positions", "⚡ Strategy", "🔮 Forecast", "📅 Aspects Timeline", "🔍 Advanced Aspect Search"])
 
 with tab1:
     st.markdown("""
@@ -1384,6 +1392,195 @@ with tab5:
             <p style="font-size: 2rem; font-weight: bold;">{sentiment_counts.get('Neutral', 0)}</p>
         </div>
         """, unsafe_allow_html=True)
+
+with tab6:
+    st.markdown("""
+    <div class="tab6-theme">
+        <h1 style="color: white; text-align: center;">🔍 Advanced Aspect Search & Timeline</h1>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Create filters for aspect search
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        # Symbol selection
+        symbol_options = ["Nifty", "BankNifty", "Gold", "Silver", "Crude", "BTC", "DowJones"]
+        search_symbol = st.selectbox("🔍 Select Symbol", symbol_options)
+    
+    with col2:
+        # Date range selection
+        start_date = st.date_input("📅 Start Date", value=datetime.date(2025, 8, 1))
+        end_date = st.date_input("📅 End Date", value=datetime.date(2025, 8, 31))
+    
+    with col3:
+        # Impact filter
+        impact_filter = st.multiselect(
+            "📊 Filter by Impact",
+            ["Bullish", "Bearish", "Neutral"],
+            default=["Bullish", "Bearish", "Neutral"]
+        )
+    
+    # Generate aspects for the selected date range
+    if start_date > end_date:
+        st.error("Start date must be before end date")
+    else:
+        # Calculate number of days
+        num_days = (end_date - start_date).days + 1
+        
+        # Create a progress bar
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        
+        # Initialize filtered aspects data
+        filtered_aspects = []
+        
+        # Generate aspects for each day in the range
+        for i in range(num_days):
+            current_date = start_date + datetime.timedelta(days=i)
+            
+            # Update progress
+            progress = (i + 1) / num_days
+            progress_bar.progress(progress)
+            status_text.text(f"Generating aspects for {current_date.strftime('%d %B %Y')}...")
+            
+            # Generate aspects for the current date
+            if current_date == datetime.date(2025, 8, 6):
+                daily_aspects = aug6_aspects
+            else:
+                daily_aspects = generate_aspects_for_date(current_date)
+            
+            # Process each aspect
+            for aspect in daily_aspects:
+                # Determine impact based on selected symbol
+                if search_symbol in ["Nifty", "BankNifty"]:
+                    impact = aspect["indian_market"]
+                elif search_symbol in ["Gold", "Silver", "Crude"]:
+                    impact = aspect["commodities"]
+                elif search_symbol == "BTC":
+                    impact = aspect["forex"]
+                elif search_symbol == "DowJones":
+                    impact = aspect["global_market"]
+                else:
+                    impact = "Neutral"
+                
+                # Check if impact matches filter
+                impact_category = "Neutral"
+                if "Bullish" in impact or "recovery" in impact.lower() or "rally" in impact.lower():
+                    impact_category = "Bullish"
+                elif "Bearish" in impact or "dip" in impact.lower() or "pressure" in impact.lower() or "risks" in impact.lower():
+                    impact_category = "Bearish"
+                
+                if impact_category in impact_filter:
+                    # Add to filtered aspects
+                    filtered_aspects.append({
+                        "Date": current_date.strftime("%d %B %Y"),
+                        "Time": aspect["time"],
+                        "Aspect": aspect["aspect"],
+                        "Meaning": aspect["meaning"],
+                        "Impact": impact,
+                        "Impact Category": impact_category
+                    })
+        
+        # Clear progress bar
+        progress_bar.empty()
+        status_text.empty()
+        
+        # Display filtered aspects
+        if filtered_aspects:
+            st.subheader(f"📊 {search_symbol} Aspect Timeline ({start_date.strftime('%d %b %Y')} - {end_date.strftime('%d %b %Y')})")
+            
+            # Create a timeline chart
+            timeline_df = pd.DataFrame(filtered_aspects)
+            
+            # Convert date and time to datetime for plotting
+            timeline_df['DateTime'] = pd.to_datetime(timeline_df['Date'] + ' ' + timeline_df['Time'])
+            
+            # Create a color map for impacts
+            color_map = {
+                "Bullish": "#16a34a",
+                "Bearish": "#dc2626",
+                "Neutral": "#f59e0b"
+            }
+            
+            # Create a scatter plot for the timeline
+            fig = px.scatter(
+                timeline_df, 
+                x="DateTime", 
+                y="Aspect",
+                color="Impact Category",
+                color_discrete_map=color_map,
+                hover_data=["Meaning", "Impact"],
+                title=f"{search_symbol} Aspect Timeline",
+                labels={"DateTime": "Date & Time", "Aspect": "Planetary Aspect"}
+            )
+            
+            fig.update_layout(height=500)
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Create a summary table
+            st.subheader("📋 Aspect Summary")
+            
+            # Group by date and count impacts
+            summary_df = timeline_df.groupby(['Date', 'Impact Category']).size().unstack(fill_value=0)
+            
+            # Add total column
+            summary_df['Total'] = summary_df.sum(axis=1)
+            
+            # Display summary table
+            st.dataframe(summary_df, use_container_width=True)
+            
+            # Create a bar chart for daily impact counts
+            st.subheader("📈 Daily Impact Counts")
+            
+            # Prepare data for bar chart
+            bar_data = []
+            for date, group in timeline_df.groupby('Date'):
+                for impact_cat in ['Bullish', 'Bearish', 'Neutral']:
+                    count = len(group[group['Impact Category'] == impact_cat])
+                    bar_data.append({
+                        'Date': date,
+                        'Impact Category': impact_cat,
+                        'Count': count
+                    })
+            
+            bar_df = pd.DataFrame(bar_data)
+            
+            fig = px.bar(
+                bar_df,
+                x="Date",
+                y="Count",
+                color="Impact Category",
+                color_discrete_map=color_map,
+                title="Daily Impact Counts",
+                labels={"Count": "Number of Aspects", "Date": "Date"}
+            )
+            
+            fig.update_layout(height=400)
+            st.plotly_chart(fig, use_container_width=True)
+            
+            # Display detailed aspects in a table
+            st.subheader("🔍 Detailed Aspect Information")
+            
+            # Create a DataFrame with all aspects
+            aspects_df = pd.DataFrame(filtered_aspects)
+            
+            # Reorder columns
+            aspects_df = aspects_df[['Date', 'Time', 'Aspect', 'Impact Category', 'Impact', 'Meaning']]
+            
+            # Display the table
+            st.dataframe(aspects_df, use_container_width=True)
+            
+            # Download button for the data
+            csv = aspects_df.to_csv(index=False)
+            st.download_button(
+                label="📥 Download Data as CSV",
+                data=csv,
+                file_name=f"{search_symbol}_aspects_{start_date.strftime('%Y%m%d')}_to_{end_date.strftime('%Y%m%d')}.csv",
+                mime="text/csv"
+            )
+        else:
+            st.info("No aspects found matching your criteria. Please adjust your filters.")
 
 # Footer with enhanced styling
 st.markdown("""
